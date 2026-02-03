@@ -36,14 +36,18 @@ const App: React.FC = () => {
   const [showAuthModal, setShowAuthModal] = useState(false);
 
   // Theme State
-  const [theme, setTheme] = useState<'dark' | 'light'>(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('theme');
-      if (saved) return saved as 'dark' | 'light';
-      return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+  const [hasMounted, setHasMounted] = useState(false);
+
+  useEffect(() => {
+    setHasMounted(true);
+    const saved = localStorage.getItem('theme');
+    if (saved) {
+      setTheme(saved as 'dark' | 'light');
+    } else {
+      setTheme(window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
     }
-    return 'dark';
-  });
+  }, []);
 
   // Helper to check for abort errors
   const isAbortError = (err: any) => {
@@ -183,14 +187,16 @@ const App: React.FC = () => {
   };
 
   useEffect(() => {
-    const root = window.document.documentElement;
-    if (theme === 'dark') {
-      root.classList.add('dark');
-    } else {
-      root.classList.remove('dark');
+    if (hasMounted) {
+      const root = window.document.documentElement;
+      if (theme === 'dark') {
+        root.classList.add('dark');
+      } else {
+        root.classList.remove('dark');
+      }
+      localStorage.setItem('theme', theme);
     }
-    localStorage.setItem('theme', theme);
-  }, [theme]);
+  }, [theme, hasMounted]);
 
   const toggleTheme = () => {
     setTheme(prev => prev === 'dark' ? 'light' : 'dark');
@@ -296,7 +302,7 @@ const App: React.FC = () => {
             className="text-gray-500 hover:text-emerald-600 dark:text-gray-400 dark:hover:text-white transition-colors p-1"
             aria-label="Alternar Tema Escuro"
           >
-             {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
+             {hasMounted ? (theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />) : <Sun size={20} />}
           </button>
           <div className="w-px h-5 bg-gray-300 dark:bg-gray-700"></div>
           
