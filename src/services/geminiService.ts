@@ -1,4 +1,6 @@
-import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from "@google/generative-ai";
+'use client';
+
+import { GoogleGenAI, HarmCategory, HarmBlockThreshold } from "@google/genai";
 import { config, hasApiKey } from "@/services/config";
 
 // Initialize Gemini safely inside functions to prevent crash on load if key is missing
@@ -8,7 +10,7 @@ const getAiClient = () => {
   if (!apiKey) {
     throw new Error("API Key not configured");
   }
-  return new GoogleGenerativeAI(apiKey);
+  return new GoogleGenAI(apiKey);
 };
 
 export const generateArticleContent = async (title: string, excerpt: string): Promise<string> => {
@@ -97,6 +99,23 @@ export const generateFullPost = async (topic: string): Promise<any> => {
             },
         ]
     });
+    
+    const schema = {
+      type: "OBJECT",
+      properties: {
+        title: { type: "STRING" },
+        slug: { type: "STRING" },
+        excerpt: { type: "STRING" },
+        content: { type: "STRING" },
+        category: { type: "STRING" },
+        tags: { 
+          type: "ARRAY", 
+          items: { type: "STRING" } 
+        },
+        read_time: { type: "STRING" }
+      },
+      required: ["title", "slug", "excerpt", "content", "category", "tags", "read_time"]
+    }
     
     const result = await model.generateContent(prompt);
     const response = result.response;

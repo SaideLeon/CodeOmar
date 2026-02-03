@@ -83,9 +83,9 @@ const SubscribeView: React.FC = () => {
                         
                         <div className="max-w-sm mx-auto p-4 bg-gray-50 dark:bg-black/40 rounded-lg border border-gray-200 dark:border-emerald-500/20 font-mono text-xs text-left text-emerald-700 dark:text-emerald-500/70 mt-4 shadow-inner">
                             <p className="mb-1"><span className="text-gray-500 dark:text-gray-600">admin@codeomar:~$</span> ./verificar_email.sh</p>
-                            <p className="text-gray-500 dark:text-gray-400">> estabelecendo conexão... OK</p>
-                            <p className="text-gray-500 dark:text-gray-400">> registrando webhook... OK</p>
-                            <p className="text-emerald-600 dark:text-emerald-400">> enviando pacote_boas_vindas.json... ENVIADO</p>
+                            <p className="text-gray-500 dark:text-gray-400">{'>'} estabelecendo conexão... OK</p>
+                            <p className="text-gray-500 dark:text-gray-400">{'>'} registrando webhook... OK</p>
+                            <p className="text-emerald-600 dark:text-emerald-400">{'>'} enviando pacote_boas_vindas.json... ENVIADO</p>
                         </div>
                      </div>
                 ) : (
