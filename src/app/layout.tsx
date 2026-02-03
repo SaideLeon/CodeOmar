@@ -1,10 +1,9 @@
 import type { Metadata } from 'next';
 import './globals.css';
-import { Toaster } from '@/components/ui/toaster';
 
 export const metadata: Metadata = {
-  title: 'Word Assistant',
-  description: 'Your friendly guide to the world of words.',
+  title: 'CodeOmar - Dev Blog',
+  description: 'A high-performance, dark-mode blog for software engineers featuring neon aesthetics, deep-dive technical content, and AI-powered insights.',
 };
 
 export default function RootLayout({
@@ -16,12 +15,11 @@ export default function RootLayout({
     <html lang="en" className="dark">
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="true" />
-        <link href="https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@0,7..72,200..900;1,7..72,200..900&display=swap" rel="stylesheet" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
       </head>
-      <body className="font-body antialiased">
+      <body className="bg-gray-50 text-gray-900 dark:bg-[#050505] dark:text-[#e5e5e5] transition-colors duration-300 font-sans">
         {children}
-        <Toaster />
       </body>
     </html>
   );

@@ -74,4 +74,28 @@
   body {
     @apply bg-background text-foreground;
   }
+  /* Scrollbar Styling */
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  /* Light Mode Scrollbar */
+  html:not(.dark) ::-webkit-scrollbar-track {
+    background: #f3f4f6;
+  }
+  html:not(.dark) ::-webkit-scrollbar-thumb {
+    background: #d1d5db;
+    border-radius: 4px;
+  }
+  html:not(.dark) ::-webkit-scrollbar-thumb:hover {
+    background: #10b981;
+  }
+
+  /* Dark Mode Scrollbar */
+  .dark ::-webkit-scrollbar-track {
+    background: #0b0e11;
+  }
+  .dark ::-webkit-scrollbar-thumb {
+    background: #333;
+  }
 }
