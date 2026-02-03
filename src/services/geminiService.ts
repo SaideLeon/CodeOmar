@@ -20,7 +20,7 @@ export const generateArticleContent = async (title: string, excerpt: string): Pr
 
   try {
     const ai = getAiClient();
-    const model = ai.getGenerativeModel({ model: "gemini-1.5-flash"});
+    const model = ai.getGenerativeModel({ model: "gemini-2.5-flash"});
     const prompt = `
       Escreva um artigo técnico completo de blog para programadores sobre o tema: "${title}".
       Contexto: ${excerpt}
@@ -49,7 +49,7 @@ export const generateSearchInsights = async (query: string): Promise<string> => 
    
    try {
      const ai = getAiClient();
-     const model = ai.getGenerativeModel({ model: "gemini-1.5-flash"});
+     const model = ai.getGenerativeModel({ model: "gemini-2.5-flash"});
      const result = await model.generateContent(`User search query on a dev blog: "${query}". Provide a 1-sentence technical insight or "did you know" related to this query. Keep it geeky. Language: Portuguese (Brazil).`);
      const response = result.response;
      return response.text();
@@ -78,7 +78,7 @@ export const generateFullPost = async (topic: string): Promise<any> => {
   try {
     const ai = getAiClient();
     const model = ai.getGenerativeModel({
-        model: "gemini-1.5-flash",
+        model: "gemini-2.5-flash",
         generationConfig: {
             responseMimeType: "application/json",
             responseSchema: {
