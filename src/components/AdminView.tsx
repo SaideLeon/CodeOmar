@@ -259,9 +259,9 @@ const AdminView: React.FC<AdminViewProps> = ({ user }) => {
 
       setTags(generated.tags || []);
       setReadTime(generated.read_time || '5 min leitura');
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
-      alert("Falha ao gerar conteúdo. Verifique sua API Key.");
+      alert(`Falha ao gerar conteúdo: ${error.message}`);
     } finally {
       setIsGenerating(false);
     }

@@ -59,7 +59,9 @@ export const generateSearchInsights = async (query: string): Promise<string> => 
 }
 
 export const generateFullPost = async (topic: string): Promise<any> => {
-  if (!hasApiKey()) throw new Error("API Key missing");
+  if (!hasApiKey()) {
+    throw new Error("API Key não encontrada. Por favor, configure a variável NEXT_PUBLIC_GEMINI_API_KEY em seu arquivo .env.local");
+  }
 
   const prompt = `
     You are a Senior Staff Engineer writing for a technical blog.
@@ -79,6 +81,22 @@ export const generateFullPost = async (topic: string): Promise<any> => {
         model: "gemini-1.5-flash-latest",
         generationConfig: {
             responseMimeType: "application/json",
+            responseSchema: {
+              type: "OBJECT",
+              properties: {
+                title: { type: "STRING" },
+                slug: { type: "STRING" },
+                excerpt: { type: "STRING" },
+                content: { type: "STRING" },
+                category: { type: "STRING" },
+                tags: { 
+                  type: "ARRAY", 
+                  items: { type: "STRING" } 
+                },
+                read_time: { type: "STRING" }
+              },
+              required: ["title", "slug", "excerpt", "content", "category", "tags", "read_time"]
+            }
         },
         safetySettings: [
             {
@@ -99,23 +117,6 @@ export const generateFullPost = async (topic: string): Promise<any> => {
             },
         ]
     });
-    
-    const schema = {
-      type: "OBJECT",
-      properties: {
-        title: { type: "STRING" },
-        slug: { type: "STRING" },
-        excerpt: { type: "STRING" },
-        content: { type: "STRING" },
-        category: { type: "STRING" },
-        tags: { 
-          type: "ARRAY", 
-          items: { type: "STRING" } 
-        },
-        read_time: { type: "STRING" }
-      },
-      required: ["title", "slug", "excerpt", "content", "category", "tags", "read_time"]
-    }
     
     const result = await model.generateContent(prompt);
     const response = result.response;
