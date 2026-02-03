@@ -1,6 +1,6 @@
 'use client';
 
-import { GoogleGenAI, HarmCategory, HarmBlockThreshold } from "@google/generative-ai";
+import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from "@google/generative-ai";
 import { config, hasApiKey } from "@/services/config";
 
 // Initialize Gemini safely inside functions to prevent crash on load if key is missing
@@ -10,7 +10,7 @@ const getAiClient = () => {
   if (!apiKey) {
     throw new Error("API Key not configured");
   }
-  return new GoogleGenAI(apiKey);
+  return new GoogleGenerativeAI(apiKey);
 };
 
 export const generateArticleContent = async (title: string, excerpt: string): Promise<string> => {
