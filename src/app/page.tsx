@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { ViewState, BlogPost, UserProfile } from '@/types';
+import { INITIAL_POSTS } from '@/constants';
 import GridBackground from '@/components/GridBackground';
 import Hero from '@/components/Hero';
 import WindowFrame from '@/components/WindowFrame';
@@ -26,7 +27,7 @@ const App: React.FC = () => {
   const [searchInsight, setSearchInsight] = useState('');
   
   // Data State
-  const [posts, setPosts] = useState<BlogPost[]>([]);
+  const [posts, setPosts] = useState<BlogPost[]>(INITIAL_POSTS);
   const [loadingPosts, setLoadingPosts] = useState(true);
 
   // Auth State
@@ -111,7 +112,8 @@ const App: React.FC = () => {
       if (isAbortError(err)) {
           return;
       }
-      console.error('Error loading posts:', err);
+      console.error('Error loading posts from Supabase:', err.message || err);
+      console.info('Hint: This might be due to RLS policies. Falling back to initial data.');
     } finally {
       setLoadingPosts(false);
     }
