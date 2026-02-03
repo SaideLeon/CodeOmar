@@ -1,6 +1,6 @@
 'use client';
 
-import { GoogleGenAI, HarmCategory, HarmBlockThreshold } from "@google/genai";
+import { GoogleGenAI, HarmCategory, HarmBlockThreshold } from "@google/generative-ai";
 import { config, hasApiKey } from "@/services/config";
 
 // Initialize Gemini safely inside functions to prevent crash on load if key is missing
