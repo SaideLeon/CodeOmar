@@ -329,9 +329,19 @@ const App: React.FC = () => {
           <div className="hidden md:block">
             {user ? (
               <div className="flex items-center gap-3">
-                 <span className="hidden sm:inline-block text-xs font-mono text-emerald-600 dark:text-emerald-500">
-                    {userProfile?.username || user.email?.split('@')[0]}
-                 </span>
+                 <div className="hidden sm:flex flex-col items-start leading-none">
+                   <span className="text-xs font-mono text-emerald-600 dark:text-emerald-500">
+                      {userProfile?.username || user.email?.split('@')[0]}
+                   </span>
+                   {isAdmin && (
+                     <button
+                       onClick={() => handleNavigation('ADMIN')}
+                       className="mt-1 text-[10px] font-mono text-red-500 hover:text-red-400 underline underline-offset-4"
+                     >
+                       acessar /admin
+                     </button>
+                   )}
+                 </div>
                  <button 
                    onClick={handleLogout}
                    className="flex items-center gap-2 text-xs font-mono bg-gray-100 dark:bg-gray-800 px-3 py-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors text-gray-700 dark:text-gray-300"
