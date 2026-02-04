@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { ViewState, BlogPost, UserProfile } from '@/types';
-import { INITIAL_POSTS } from '@/constants';
 import GridBackground from '@/components/GridBackground';
 import Hero from '@/components/Hero';
 import WindowFrame from '@/components/WindowFrame';
@@ -19,6 +18,7 @@ const App: React.FC = () => {
   const [viewState, setViewState] = useState<ViewState>('HOME');
   const [selectedPost, setSelectedPost] = useState<BlogPost | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [didInitFromUrl, setDidInitFromUrl] = useState(false);
   
   // Filter States
   const [activeCategory, setActiveCategory] = useState<string>('all');
@@ -28,7 +28,7 @@ const App: React.FC = () => {
   const [searchInsight, setSearchInsight] = useState('');
   
   // Data State
-  const [posts, setPosts] = useState<BlogPost[]>(INITIAL_POSTS);
+  const [posts, setPosts] = useState<BlogPost[]>([]);
   const [loadingPosts, setLoadingPosts] = useState(true);
 
   // Auth State
@@ -74,22 +74,7 @@ const App: React.FC = () => {
 
       // Logic: If user is NOT admin, only show 'published'.
       // If user IS admin, show everything.
-      
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      // Determine if we should filter
-      let isAdmin = false;
-      if (session?.user) {
-         // Optimistic check or fetch profile
-         try {
-             const { data: profile } = await supabase.from('profiles').select('role').eq('id', session.user.id).single();
-             if (profile?.role === 'admin') isAdmin = true;
-         } catch (profileErr) {
-             // Ignore profile fetch errors here, assume not admin
-         }
-      }
-
-      if (!isAdmin) {
+      if (userProfile?.role !== 'admin') {
          query = query.eq('status', 'published');
       }
       
@@ -118,7 +103,6 @@ const App: React.FC = () => {
           return;
       }
       console.error('Error loading posts from Supabase:', err.message || err);
-      console.info('Hint: This might be due to RLS policies. Falling back to initial data.');
     } finally {
       setLoadingPosts(false);
     }
@@ -150,6 +134,8 @@ const App: React.FC = () => {
       })
       .subscribe();
 
+    fetchPosts();
+
     return () => {
       subscription.unsubscribe();
       supabase.removeChannel(postsChannel);
@@ -160,6 +146,25 @@ const App: React.FC = () => {
   useEffect(() => {
      fetchPosts();
   }, [userProfile]);
+
+  useEffect(() => {
+    if (didInitFromUrl) return;
+    if (posts.length === 0) return;
+
+    const params = new URLSearchParams(window.location.search);
+    const slugParam = params.get('post');
+    if (!slugParam) {
+      setDidInitFromUrl(true);
+      return;
+    }
+
+    const match = posts.find((post) => post.slug === slugParam);
+    if (match) {
+      setSelectedPost(match);
+      setViewState('ARTICLE');
+    }
+    setDidInitFromUrl(true);
+  }, [posts, didInitFromUrl]);
 
   // Reset subcategory when category changes
   useEffect(() => {
@@ -207,12 +212,20 @@ const App: React.FC = () => {
     setSelectedPost(post);
     setViewState('ARTICLE');
     window.scrollTo(0,0);
+    if (post.slug) {
+      const url = new URL(window.location.href);
+      url.searchParams.set('post', post.slug);
+      window.history.pushState({}, '', url.toString());
+    }
   };
 
   const handleBack = () => {
     setViewState('HOME');
     setSelectedPost(null);
     window.scrollTo(0,0);
+    const url = new URL(window.location.href);
+    url.searchParams.delete('post');
+    window.history.pushState({}, '', url.toString());
   };
 
   const handleSearch = async (e: React.FormEvent) => {
@@ -240,11 +253,11 @@ const App: React.FC = () => {
 
   // 0. Compute Available Categories from database posts
   const availableCategories = useMemo(() => {
-    const cats = Array.from(new Set(
-      posts.map(p => p.category).filter(c => !!c && c.trim() !== '')
-    ));
+    const postCategories = posts.map(p => p.category).filter(c => !!c && c.trim() !== '');
+    const cats = Array.from(new Set(postCategories));
     return cats.sort();
   }, [posts]);
+  const isAdmin = userProfile?.role === 'admin';
 
   // 1. Compute Available Subcategories based on active Category
   const availableSubcategories = useMemo(() => {
@@ -300,7 +313,7 @@ const App: React.FC = () => {
           <button onClick={() => handleNavigation('SUBSCRIBE')} className={`hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors ${viewState === 'SUBSCRIBE' ? 'text-emerald-600 dark:text-emerald-400 font-medium' : ''}`}>/assinar</button>
           <button onClick={() => handleNavigation('ABOUT')} className={`hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors ${viewState === 'ABOUT' ? 'text-emerald-600 dark:text-emerald-400 font-medium' : ''}`}>/sobre</button>
           
-          {userProfile?.role === 'admin' && (
+          {isAdmin && (
              <button onClick={() => handleNavigation('ADMIN')} className={`flex items-center gap-1 hover:text-red-500 transition-colors ${viewState === 'ADMIN' ? 'text-red-500 font-medium' : 'text-gray-500'}`}>
                <ShieldAlert size={14} /> /admin
              </button>
@@ -330,9 +343,19 @@ const App: React.FC = () => {
           <div className="hidden md:block">
             {user ? (
               <div className="flex items-center gap-3">
-                 <span className="hidden sm:inline-block text-xs font-mono text-emerald-600 dark:text-emerald-500">
-                    {userProfile?.username || user.email?.split('@')[0]}
-                 </span>
+                 <div className="hidden sm:flex flex-col items-start leading-none">
+                   <span className="text-xs font-mono text-emerald-600 dark:text-emerald-500">
+                      {userProfile?.username || user.email?.split('@')[0]}
+                   </span>
+                   {isAdmin && (
+                     <button
+                       onClick={() => handleNavigation('ADMIN')}
+                       className="mt-1 text-[10px] font-mono text-red-500 hover:text-red-400 underline underline-offset-4"
+                     >
+                       acessar /admin
+                     </button>
+                   )}
+                 </div>
                  <button 
                    onClick={handleLogout}
                    className="flex items-center gap-2 text-xs font-mono bg-gray-100 dark:bg-gray-800 px-3 py-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors text-gray-700 dark:text-gray-300"
@@ -415,9 +438,9 @@ const App: React.FC = () => {
                     /sobre
                  </button>
 
-                 {userProfile?.role === 'admin' && (
+                 {isAdmin && (
                     <button 
-                      onClick={() => handleNavigation('ADMIN')} 
+                      onClick={() => handleNavigation('ADMIN')}
                       className={`text-left px-4 py-3 rounded hover:bg-red-50 dark:hover:bg-red-900/10 transition-colors mt-4 border border-red-200 dark:border-red-900/30 ${viewState === 'ADMIN' ? 'text-red-600 dark:text-red-400 font-bold' : 'text-red-500'}`}
                     >
                        <div className="flex items-center gap-2">
@@ -652,7 +675,33 @@ const App: React.FC = () => {
         
         {viewState === 'ABOUT' && <AboutView />}
 
-        {viewState === 'ADMIN' && <AdminView user={user} />}
+        {viewState === 'ADMIN' && (
+          isAdmin ? (
+            <AdminView user={user} />
+          ) : (
+            <div className="max-w-4xl mx-auto px-4 py-16">
+              <WindowFrame title="acesso_restrito.log">
+                <div className="p-10 bg-white dark:bg-[#0b0e11] text-center">
+                  <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-red-500/10 text-red-500 mb-4">
+                    <ShieldAlert size={28} />
+                  </div>
+                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Acesso restrito</h2>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 font-mono mb-6">
+                    Apenas administradores podem criar, editar ou remover postagens pelo painel.
+                  </p>
+                  {!user && (
+                    <button
+                      onClick={() => setShowAuthModal(true)}
+                      className="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded font-mono text-sm font-bold transition-colors shadow-lg shadow-emerald-900/20"
+                    >
+                      Entrar como admin
+                    </button>
+                  )}
+                </div>
+              </WindowFrame>
+            </div>
+          )
+        )}
 
       </main>
 
