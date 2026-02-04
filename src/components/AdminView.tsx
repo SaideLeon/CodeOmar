@@ -4,7 +4,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { supabase } from '@/services/supabaseClient';
 import { generateFullPost } from '@/services/geminiService';
 import WindowFrame from '@/components/WindowFrame';
-import { UploadCloud, FileText, Loader, X, Bot, PenTool, Save, Trash2, Sparkles, AlertTriangle, Eye, CheckCircle, Edit, RefreshCw, Search, ArrowLeft, Plus, History, RotateCcw, Layers } from 'lucide-react';
+import { UploadCloud, FileText, Loader, X, Bot, PenTool, Save, Trash2, Sparkles, AlertTriangle, Eye, CheckCircle, Edit, RefreshCw, Search, ArrowLeft, Plus, History, RotateCcw, Layers, Users } from 'lucide-react';
 import { CATEGORIES } from '@/constants';
 import ArticleView from '@/components/ArticleView';
 import { BlogPost } from '@/types';
@@ -39,6 +39,9 @@ const AdminView: React.FC<AdminViewProps> = ({ user }) => {
   const [postList, setPostList] = useState<any[]>([]);
   const [loadingList, setLoadingList] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [userList, setUserList] = useState<any[]>([]);
+  const [loadingUsers, setLoadingUsers] = useState(false);
+  const [userSearchTerm, setUserSearchTerm] = useState('');
 
   // AI & Processing State
   const [isGenerating, setIsGenerating] = useState(false);
@@ -147,8 +150,31 @@ const AdminView: React.FC<AdminViewProps> = ({ user }) => {
   useEffect(() => {
     if (viewMode === 'edit-list') {
       fetchPostList();
+      fetchUsers();
     }
   }, [viewMode]);
+
+  const fetchUsers = async () => {
+    setLoadingUsers(true);
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id, username, avatar_url, role, email, created_at')
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      setUserList(data || []);
+    } catch (err) {
+      console.error('Erro ao buscar usuários:', err);
+      setAlertState({
+        title: "usuarios.load_error",
+        message: "Falha ao carregar usuários.",
+        variant: "error",
+      });
+    } finally {
+      setLoadingUsers(false);
+    }
+  };
 
   const fetchPostList = async () => {
     setLoadingList(true);
@@ -424,9 +450,82 @@ const AdminView: React.FC<AdminViewProps> = ({ user }) => {
 
   const renderPostList = () => {
     const filtered = postList.filter(p => p.title.toLowerCase().includes(searchTerm.toLowerCase()));
+    const filteredUsers = userList.filter((u) => {
+      const term = userSearchTerm.toLowerCase();
+      const username = (u.username || '').toLowerCase();
+      const email = (u.email || '').toLowerCase();
+      return username.includes(term) || email.includes(term);
+    });
 
     return (
       <div className="space-y-4">
+        <div className="bg-white dark:bg-[#0b0e11] border border-gray-200 dark:border-gray-800 rounded-lg p-6">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+            <div>
+              <h3 className="text-sm font-mono text-gray-500 uppercase flex items-center gap-2">
+                <Users size={16} /> Usuários do Sistema
+              </h3>
+              <p className="text-xl font-bold text-gray-900 dark:text-white">
+                {loadingUsers ? 'Carregando...' : `${userList.length} usuário(s)`}
+              </p>
+            </div>
+            <div className="flex gap-3 w-full md:w-auto">
+              <div className="relative flex-1 min-w-[220px]">
+                 <Search className="absolute left-3 top-2.5 text-gray-400" size={16} />
+                 <input 
+                   type="text"
+                   placeholder="Filtrar por nome ou e-mail..."
+                   value={userSearchTerm}
+                   onChange={(e) => setUserSearchTerm(e.target.value)}
+                   className="w-full pl-10 pr-4 py-2 bg-gray-50 dark:bg-[#15191e] border border-gray-200 dark:border-gray-700 rounded-lg text-sm font-mono focus:outline-none focus:border-emerald-500 transition-colors"
+                 />
+              </div>
+              <button onClick={fetchUsers} className="p-2 bg-gray-100 dark:bg-gray-800 rounded-lg hover:text-emerald-500 transition-colors">
+                <RefreshCw size={18} className={loadingUsers ? 'animate-spin' : ''} />
+              </button>
+            </div>
+          </div>
+
+          <div className="border border-gray-200 dark:border-gray-800 rounded-lg overflow-hidden">
+            <table className="w-full text-sm text-left">
+              <thead className="text-xs text-gray-500 uppercase bg-gray-50 dark:bg-[#15191e] border-b border-gray-200 dark:border-gray-800">
+                <tr>
+                  <th className="px-6 py-3 font-mono">Usuário</th>
+                  <th className="px-6 py-3 font-mono">E-mail</th>
+                  <th className="px-6 py-3 font-mono">Role</th>
+                </tr>
+              </thead>
+              <tbody>
+                {loadingUsers ? (
+                  <tr><td colSpan={3} className="p-6 text-center"><Loader className="animate-spin mx-auto text-emerald-500" /></td></tr>
+                ) : filteredUsers.length === 0 ? (
+                  <tr><td colSpan={3} className="p-6 text-center text-gray-500 font-mono">Nenhum usuário encontrado.</td></tr>
+                ) : (
+                  filteredUsers.map((profile) => (
+                    <tr key={profile.id} className="border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-[#15191e]/50 transition-colors">
+                      <td className="px-6 py-4 font-medium text-gray-900 dark:text-gray-200">
+                        {profile.username || 'usuario_sem_nome'}
+                      </td>
+                      <td className="px-6 py-4 text-gray-500 font-mono text-xs">
+                        {profile.email || 'email_nao_informado'}
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className={`px-2 py-1 rounded text-xs font-mono border ${
+                          profile.role === 'admin'
+                           ? 'bg-emerald-50 dark:bg-emerald-900/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
+                           : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 border-gray-200 dark:border-gray-700'
+                        }`}>
+                          {profile.role || 'user'}
+                        </span>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
         <div className="flex gap-4 mb-6">
           <div className="relative flex-1">
              <Search className="absolute left-3 top-2.5 text-gray-400" size={16} />
