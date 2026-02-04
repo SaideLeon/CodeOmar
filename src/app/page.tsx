@@ -12,12 +12,13 @@ import AboutView from '@/components/AboutView';
 import AdminView from '@/components/AdminView';
 import AuthModal from '@/components/AuthModal'; 
 import { supabase } from '@/services/supabaseClient'; 
-import { Search, Cpu, ChevronRight, Sparkles, Sun, Moon, LogIn, LogOut, ShieldAlert, EyeOff, Layers, Filter } from 'lucide-react';
+import { Search, Cpu, ChevronRight, Sparkles, Sun, Moon, LogIn, LogOut, ShieldAlert, Layers, Filter, Menu, X, Terminal, User } from 'lucide-react';
 import { generateSearchInsights } from '@/services/geminiService';
 
 const App: React.FC = () => {
   const [viewState, setViewState] = useState<ViewState>('HOME');
   const [selectedPost, setSelectedPost] = useState<BlogPost | null>(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   
   // Filter States
   const [activeCategory, setActiveCategory] = useState<string>('all');
@@ -211,6 +212,7 @@ const App: React.FC = () => {
   const handleBack = () => {
     setViewState('HOME');
     setSelectedPost(null);
+    window.scrollTo(0,0);
   };
 
   const handleSearch = async (e: React.FormEvent) => {
@@ -224,7 +226,15 @@ const App: React.FC = () => {
   const handleLogout = async () => {
     await supabase.auth.signOut();
     setViewState('HOME');
+    setMobileMenuOpen(false);
   };
+  
+  const handleNavigation = (view: ViewState) => {
+    setViewState(view);
+    setMobileMenuOpen(false);
+    window.scrollTo(0,0);
+  };
+
 
   // --- Filtering Logic ---
 
@@ -284,13 +294,14 @@ const App: React.FC = () => {
           <span>Code<span className="text-emerald-600 dark:text-emerald-500">Omar</span></span>
         </div>
 
+        {/* Desktop Menu */}
         <div className="hidden md:flex items-center gap-6 text-sm font-mono text-gray-600 dark:text-gray-400">
-          <button onClick={() => setViewState('HOME')} className={`hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors ${viewState === 'HOME' ? 'text-emerald-600 dark:text-emerald-400 font-medium' : ''}`}>/posts</button>
-          <button onClick={() => setViewState('SUBSCRIBE')} className={`hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors ${viewState === 'SUBSCRIBE' ? 'text-emerald-600 dark:text-emerald-400 font-medium' : ''}`}>/assinar</button>
-          <button onClick={() => setViewState('ABOUT')} className={`hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors ${viewState === 'ABOUT' ? 'text-emerald-600 dark:text-emerald-400 font-medium' : ''}`}>/sobre</button>
+          <button onClick={() => handleNavigation('HOME')} className={`hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors ${viewState === 'HOME' ? 'text-emerald-600 dark:text-emerald-400 font-medium' : ''}`}>/posts</button>
+          <button onClick={() => handleNavigation('SUBSCRIBE')} className={`hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors ${viewState === 'SUBSCRIBE' ? 'text-emerald-600 dark:text-emerald-400 font-medium' : ''}`}>/assinar</button>
+          <button onClick={() => handleNavigation('ABOUT')} className={`hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors ${viewState === 'ABOUT' ? 'text-emerald-600 dark:text-emerald-400 font-medium' : ''}`}>/sobre</button>
           
           {userProfile?.role === 'admin' && (
-             <button onClick={() => setViewState('ADMIN')} className={`flex items-center gap-1 hover:text-red-500 transition-colors ${viewState === 'ADMIN' ? 'text-red-500 font-medium' : 'text-gray-500'}`}>
+             <button onClick={() => handleNavigation('ADMIN')} className={`flex items-center gap-1 hover:text-red-500 transition-colors ${viewState === 'ADMIN' ? 'text-red-500 font-medium' : 'text-gray-500'}`}>
                <ShieldAlert size={14} /> /admin
              </button>
           )}
@@ -304,39 +315,152 @@ const App: React.FC = () => {
           >
              {hasMounted ? (theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />) : <Sun size={20} />}
           </button>
-          <div className="w-px h-5 bg-gray-300 dark:bg-gray-700"></div>
           
-          {user ? (
-            <div className="flex items-center gap-3">
-               <span className="hidden sm:inline-block text-xs font-mono text-emerald-600 dark:text-emerald-500">
-                  {userProfile?.username || user.email?.split('@')[0]}
-               </span>
-               <button 
-                 onClick={handleLogout}
-                 className="flex items-center gap-2 text-xs font-mono bg-gray-100 dark:bg-gray-800 px-3 py-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors text-gray-700 dark:text-gray-300"
-               >
-                 <LogOut size={14} />
-                 Sair
-               </button>
-            </div>
-          ) : (
-            <button 
-              onClick={() => setShowAuthModal(true)}
-              className="flex items-center gap-2 text-xs font-mono bg-emerald-600 text-white px-3 py-1.5 rounded hover:bg-emerald-500 transition-colors shadow-lg shadow-emerald-900/20"
-            >
-              <LogIn size={14} />
-              Entrar
-            </button>
-          )}
+          {/* Mobile Menu Toggle */}
+          <button 
+            className="md:hidden text-gray-500 hover:text-emerald-600 dark:text-gray-400 dark:hover:text-white p-1"
+            onClick={() => setMobileMenuOpen(true)}
+          >
+             <Menu size={24} />
+          </button>
+
+          <div className="hidden md:block w-px h-5 bg-gray-300 dark:bg-gray-700"></div>
+          
+          {/* Desktop Auth */}
+          <div className="hidden md:block">
+            {user ? (
+              <div className="flex items-center gap-3">
+                 <span className="hidden sm:inline-block text-xs font-mono text-emerald-600 dark:text-emerald-500">
+                    {userProfile?.username || user.email?.split('@')[0]}
+                 </span>
+                 <button 
+                   onClick={handleLogout}
+                   className="flex items-center gap-2 text-xs font-mono bg-gray-100 dark:bg-gray-800 px-3 py-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors text-gray-700 dark:text-gray-300"
+                 >
+                   <LogOut size={14} />
+                   Sair
+                 </button>
+              </div>
+            ) : (
+              <button 
+                onClick={() => setShowAuthModal(true)}
+                className="flex items-center gap-2 text-xs font-mono bg-emerald-600 text-white px-3 py-1.5 rounded hover:bg-emerald-500 transition-colors shadow-lg shadow-emerald-900/20"
+              >
+                <LogIn size={14} />
+                Entrar
+              </button>
+            )}
+          </div>
         </div>
       </nav>
+
+      {/* Mobile Menu Overlay */}
+      {mobileMenuOpen && (
+        <div className="fixed inset-0 z-[100] md:hidden">
+           {/* Backdrop */}
+           <div 
+             className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-300"
+             onClick={() => setMobileMenuOpen(false)}
+           ></div>
+           
+           {/* Slide-out Panel */}
+           <div className="absolute right-0 top-0 h-full w-[80%] max-w-sm bg-white dark:bg-[#0b0e11] border-l border-gray-200 dark:border-emerald-500/20 shadow-2xl flex flex-col p-6 animate-in slide-in-from-right duration-300">
+              {/* Header */}
+              <div className="flex items-center justify-between mb-8 border-b border-gray-100 dark:border-white/5 pb-4">
+                 <div className="flex items-center gap-2 font-mono text-emerald-600 dark:text-emerald-500 text-sm">
+                    <Terminal size={16} />
+                    <span>system_nav.sh</span>
+                 </div>
+                 <button 
+                   onClick={() => setMobileMenuOpen(false)}
+                   className="text-gray-500 hover:text-emerald-500 transition-colors"
+                 >
+                    <X size={24} />
+                 </button>
+              </div>
+
+              {/* User Info (Mobile) */}
+              {user && (
+                 <div className="mb-6 p-4 bg-gray-50 dark:bg-emerald-900/10 rounded-lg border border-gray-100 dark:border-emerald-500/20">
+                    <div className="flex items-center gap-3 mb-2">
+                       <div className="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
+                          <User size={20} />
+                       </div>
+                       <div className="overflow-hidden">
+                          <p className="text-sm font-bold text-gray-900 dark:text-white truncate">@{userProfile?.username || 'user'}</p>
+                          <p className="text-xs text-gray-500 font-mono truncate">{user.email}</p>
+                       </div>
+                    </div>
+                 </div>
+              )}
+
+              {/* Navigation Links */}
+              <div className="flex-1 flex flex-col gap-2 font-mono text-sm">
+                 <button 
+                   onClick={() => handleNavigation('HOME')} 
+                   className={`text-left px-4 py-3 rounded hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors ${viewState === 'HOME' ? 'text-emerald-600 dark:text-emerald-500 bg-emerald-50 dark:bg-emerald-900/10 font-bold border-l-2 border-emerald-500' : 'text-gray-600 dark:text-gray-400'}`}
+                 >
+                    /posts
+                 </button>
+                 <button 
+                   onClick={() => handleNavigation('SUBSCRIBE')} 
+                   className={`text-left px-4 py-3 rounded hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors ${viewState === 'SUBSCRIBE' ? 'text-emerald-600 dark:text-emerald-500 bg-emerald-50 dark:bg-emerald-900/10 font-bold border-l-2 border-emerald-500' : 'text-gray-600 dark:text-gray-400'}`}
+                 >
+                    /assinar
+                 </button>
+                 <button 
+                   onClick={() => handleNavigation('ABOUT')} 
+                   className={`text-left px-4 py-3 rounded hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors ${viewState === 'ABOUT' ? 'text-emerald-600 dark:text-emerald-500 bg-emerald-50 dark:bg-emerald-900/10 font-bold border-l-2 border-emerald-500' : 'text-gray-600 dark:text-gray-400'}`}
+                 >
+                    /sobre
+                 </button>
+
+                 {userProfile?.role === 'admin' && (
+                    <button 
+                      onClick={() => handleNavigation('ADMIN')} 
+                      className={`text-left px-4 py-3 rounded hover:bg-red-50 dark:hover:bg-red-900/10 transition-colors mt-4 border border-red-200 dark:border-red-900/30 ${viewState === 'ADMIN' ? 'text-red-600 dark:text-red-400 font-bold' : 'text-red-500'}`}
+                    >
+                       <div className="flex items-center gap-2">
+                          <ShieldAlert size={14} /> /admin_console
+                       </div>
+                    </button>
+                 )}
+              </div>
+
+              {/* Footer Actions */}
+              <div className="mt-auto pt-6 border-t border-gray-100 dark:border-white/5">
+                 {user ? (
+                    <button 
+                      onClick={handleLogout}
+                      className="w-full flex items-center justify-center gap-2 py-3 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors font-mono text-sm font-medium"
+                    >
+                       <LogOut size={16} /> Encerrar Sessão
+                    </button>
+                 ) : (
+                    <button 
+                      onClick={() => {
+                         setMobileMenuOpen(false);
+                         setShowAuthModal(true);
+                      }}
+                      className="w-full flex items-center justify-center gap-2 py-3 bg-emerald-600 text-white rounded hover:bg-emerald-500 transition-colors font-mono text-sm font-bold shadow-lg shadow-emerald-900/20"
+                    >
+                       <LogIn size={16} /> Iniciar Sessão
+                    </button>
+                 )}
+                 <div className="mt-6 text-center text-[10px] text-gray-400 font-mono">
+                    Runtime::Log v2.0.4 mobile_build
+                 </div>
+              </div>
+           </div>
+        </div>
+      )}
 
       {/* Main Content */}
       <main className="relative pt-16 min-h-screen flex flex-col">
         
         {viewState === 'HOME' && (
           <>
-            <Hero onSubscribe={() => setViewState('SUBSCRIBE')} />
+            <Hero onSubscribe={() => handleNavigation('SUBSCRIBE')} />
             
             <div className="max-w-7xl mx-auto px-4 w-full pb-20">
               

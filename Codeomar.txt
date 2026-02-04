@@ -1249,99 +1249,52 @@ Arquivo: README.md
 
 > **Status do Sistema:** Online  
 > **Tema:** Cyberpunk / Focado em Desenvolvedores  
-> **Stack:** React + Supabase + Google Gemini AI
+> **Stack:** React + Supabase + Google Gemini AI + Node.js Server
 
-**Runtime::Log** é uma plataforma de blog de alto desempenho projetada especificamente para engenheiros de software. Apresenta uma estética inspirada em terminais, renderização de conteúdo técnico aprofundado e recursos impulsionados por IA para geração de conteúdo e insights de pesquisa.
-
-![Prévia do Projeto](https://placehold.co/800x400/050505/10b981?text=Runtime::Log+Preview)
+**Runtime::Log** é uma plataforma de blog de alto desempenho projetada especificamente para engenheiros de software. Apresenta uma estética inspirada em terminais, renderização de conteúdo técnico aprofundado e recursos impulsionados por IA.
 
 ## 🚀 Recursos
 
 ### 🎨 UX/UI
-- **Estética Neon/Modo Escuro:** Construído com Tailwind CSS, apresentando glassmorphism, bordas brilhantes e tipografia estilo terminal (`JetBrains Mono`).
+- **Estética Neon/Modo Escuro:** Construído com Tailwind CSS.
 - **Design Responsivo:** Totalmente otimizado para mobile, tablet e desktop.
-- **Animações:** Transições suaves usando `framer-motion`.
 
-### 📝 Gerenciamento de Conteúdo
-- **Suporte a Markdown:** Renderiza texto rico, blocos de código com destaque de sintaxe (`react-syntax-highlighter`) e estilização recursiva.
-- **Painel Administrativo:** 
-  - Upload de arquivos `.md` via arrastar e soltar.
-  - Análise automática de frontmatter YAML.
-  - **Gerador de IA:** Rascunhe posts completos de blog usando modelos Google Gemini 3 diretamente do painel de administração.
+### 📝 Conteúdo & IA
+- **Suporte a Markdown:** Renderiza texto rico e blocos de código.
+- **Integração Gemini AI:** Gera insights de pesquisa e rascunhos de artigos.
 
-### 🤖 Integração com IA (Google Gemini)
-- **Insights de Pesquisa com IA:** Gera insights técnicos no estilo "Você sabia?" baseados nas consultas de pesquisa do usuário.
-- **Geração de Conteúdo:** Gera artigos automaticamente ou preenche conteúdo ausente em rascunhos.
+## 🛠 Instalação e Configuração
 
-### 👥 Comunidade
-- **Autenticação:** Autenticação por Email/Senha via Supabase.
-- **Comentários:** Threads aninhadas (estilo Reddit) para discussões técnicas.
-- **Curtidas:** Rastreamento de engajamento em tempo real.
-
-## 🛠 Tech Stack
-
-- **Frontend:** React 19, TypeScript, Tailwind CSS
-- **Estado/Efeitos:** React Hooks
-- **Backend/DB:** Supabase (PostgreSQL, Auth, Realtime)
-- **IA:** Google GenAI SDK (`@google/genai`)
-- **Ícones:** Lucide React
-
-## ⚙️ Instalação e Configuração
-
-### 1. Clone o repositório
-```bash
-git clone https://github.com/seu-usuario/runtime-log.git
-cd runtime-log
-```
-
-### 2. Instale as dependências
+### 1. Instale as dependências
 ```bash
 npm install
 ```
 
-### 3. Variáveis de Ambiente
-Crie um arquivo `.env` no diretório raiz (ou configure seu ambiente de build) com o seguinte:
+### 2. Configuração de Ambiente (.env)
+Seguindo o padrão **Vite**, as variáveis de ambiente devem começar com `VITE_`.
 
-```env
-# Necessário para recursos de IA
-API_KEY=sua_chave_api_google_gemini
-```
+1. Renomeie o arquivo de exemplo:
+   ```bash
+   cp .env.example .env
+   ```
+2. Abra o arquivo `.env` e adicione sua chave:
+   ```env
+   VITE_API_KEY=sua_chave_api_google_aqui
+   ```
 
-*Nota: A configuração do Supabase está atualmente localizada em `services/supabaseClient.ts`.*
-
-### 4. Configuração do Banco de Dados (Supabase)
-Execute o script SQL fornecido em `supabase_schema.sql` dentro do Editor SQL do seu projeto Supabase. Isso irá:
-1. Habilitar extensões UUID.
-2. Criar tabelas: `profiles`, `posts`, `comments`, `post_likes`.
-3. Configurar políticas de Segurança em Nível de Linha (RLS).
-4. Criar gatilhos (triggers) para manipulação de novos usuários.
-
-### 5. Execute a aplicação
+### 3. Execute a aplicação
 ```bash
 npm start
 ```
+Acesse em `http://localhost:3000`.
 
-## 📂 Estrutura do Projeto
+## 📂 Estrutura
 
-```text
-/
-├── components/       # Componentes de UI (Hero, AdminView, ArticleView, etc.)
-├── services/         # Clientes de API (Supabase, Gemini)
-├── types.ts          # Interfaces TypeScript
-├── constants.ts      # Dados estáticos e configurações
-├── supabase_schema.sql # Definição do banco de dados
-└── App.tsx           # Lógica Principal da Aplicação
-```
+- **Frontend:** React (via ES Modules/esm.sh) no `index.html` e `src/`.
+- **Backend:** `server.js` (Express) serve o frontend e injeta a `VITE_API_KEY`.
+- **Config:** `services/config.ts` unifica o acesso via `import.meta.env` e polyfill.
 
-## 🔐 Acesso Administrativo
-
-Para acessar a rota `/admin`:
-1. Registre um novo usuário via interface.
-2. Vá para o Editor de Tabelas do Supabase -> tabela `profiles`.
-3. Altere a coluna `role` do seu usuário de `user` para `admin`.
-4. Atualize a aplicação.
-
-## 📜 Licença
+## 🔐 Licença
 
 Licença MIT.
 
@@ -1351,42 +1304,60 @@ Arquivo: services/config.ts
 
 import env from 'env-var';
 
-// Acessa o objeto global window.process que definimos no index.html
-// Isso garante compatibilidade mesmo que 'process' não seja nativo do navegador
-const getEnvSource = () => {
-  // @ts-ignore - window.process é um polyfill customizado
-  if (typeof window !== 'undefined' && window.process && window.process.env) {
-    // @ts-ignore
-    return window.process.env;
+// Helper robusto para pegar variáveis de ambiente
+// Tenta: 1. import.meta.env (Padrão Vite)
+// Tenta: 2. window.process.env (Nosso Polyfill / Node servers)
+const getEnvValue = (key: string): string => {
+  // 1. Tentar import.meta.env (Vite Standard)
+  try {
+    // @ts-ignore - import.meta pode não existir em todos os contextos de TS
+    if (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env[key]) {
+      // @ts-ignore
+      return import.meta.env[key];
+    }
+  } catch (e) {
+    // Ignore access errors
   }
-  // Fallback seguro vazio
-  return {};
+
+  // 2. Tentar window.process.env (Polyfill do server.js)
+  try {
+    // @ts-ignore
+    if (typeof window !== 'undefined' && window.process && window.process.env && window.process.env[key]) {
+       // @ts-ignore
+       return window.process.env[key];
+    }
+  } catch (e) {
+    // Ignore
+  }
+
+  return '';
 };
 
-const envSource = getEnvSource();
-
 export const config = {
-  // Usa env-var para ler de forma segura. 
-  // .asString() retorna undefined se não existir, evitando erros de runtime
-  API_KEY: env.from(envSource).get('API_KEY').asString() || '',
-  
-  // Exemplo de como adicionaríamos outras variáveis no futuro com validação:
-  // PUBLIC_URL: env.from(envSource).get('PUBLIC_URL').default('http://localhost:3000').asString(),
+  // Busca VITE_API_KEY usando a lógica híbrida
+  API_KEY: getEnvValue('VITE_API_KEY'),
 };
 
 export const hasApiKey = (): boolean => {
   return config.API_KEY.length > 0;
 };
 
-
 ========================================
 Arquivo: server.js
 ========================================
 
-require('dotenv').config();
+const dotenv = require('dotenv');
 const express = require('express');
 const path = require('path');
 const fs = require('fs');
+
+// Tenta carregar o .env e loga o resultado
+const envConfig = dotenv.config();
+if (envConfig.error) {
+  console.log('ℹ️  Arquivo .env não encontrado, usando variáveis de ambiente do sistema.');
+} else {
+  console.log('📄 Arquivo .env carregado com sucesso.');
+}
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -1413,13 +1384,14 @@ app.get('*', (req, res) => {
     }
 
     // Obtém a chave do arquivo .env ou das variáveis do sistema
-    const apiKey = process.env.API_KEY || '';
+    // Prioriza VITE_API_KEY (Padrão Vite), fallback para API_KEY antiga
+    const apiKey = process.env.VITE_API_KEY || process.env.API_KEY || '';
     
     // Procura pelo placeholder no index.html e substitui pelo valor real
-    // Regex procura por: API_KEY: '' ou API_KEY: 'valor_antigo'
+    // Regex ajustada para o novo nome da variável no index.html
     const result = data.replace(
-      /API_KEY:\s*['"](.*?)['"]/, 
-      `API_KEY: '${apiKey}'`
+      /VITE_API_KEY:\s*['"](.*?)['"]/, 
+      `VITE_API_KEY: '${apiKey}'`
     );
 
     res.setHeader('Content-Type', 'text/html');
@@ -1429,10 +1401,11 @@ app.get('*', (req, res) => {
 
 app.listen(PORT, () => {
   console.log(`\n🚀 CodeOmar rodando em http://localhost:${PORT}`);
-  if (process.env.API_KEY) {
-    console.log(`✅ API_KEY carregada com sucesso (Length: ${process.env.API_KEY.length})`);
+  if (process.env.VITE_API_KEY || process.env.API_KEY) {
+    console.log(`✅ VITE_API_KEY detectada.`);
   } else {
-    console.warn(`⚠️  AVISO: API_KEY não encontrada no .env ou variáveis de ambiente.`);
+    console.warn(`⚠️  AVISO CRÍTICO: VITE_API_KEY não encontrada.`);
+    console.warn(`   Certifique-se de definir VITE_API_KEY no arquivo .env`);
   }
 });
 
@@ -1477,13 +1450,12 @@ Arquivo: index.html
       }
     </script>
     <script>
-      // Polyfill essencial para Runtime de Variáveis de Ambiente no Navegador
-      // Define window.process para que bibliotecas que dependem dele não quebrem
+      // Runtime Environment Injection
+      // Este objeto simula o ambiente para compatibilidade
       window.process = {
         env: {
-          // Em produção (VPS), você pode injetar valores aqui via script de build ou servidor
-          // Exemplo: API_KEY: 'sua-chave-real'
-          API_KEY: '' 
+          // O servidor (server.js) irá substituir este valor vazio pela chave real do .env
+          VITE_API_KEY: '' 
         }
       };
     </script>
@@ -2163,12 +2135,13 @@ import AboutView from './components/AboutView';
 import AdminView from './components/AdminView';
 import AuthModal from './components/AuthModal'; 
 import { supabase } from './services/supabaseClient'; 
-import { Search, Cpu, ChevronRight, Sparkles, Sun, Moon, LogIn, LogOut, ShieldAlert, EyeOff, Layers, Filter } from 'lucide-react';
+import { Search, Cpu, ChevronRight, Sparkles, Sun, Moon, LogIn, LogOut, ShieldAlert, EyeOff, Layers, Filter, Menu, X, Terminal, User } from 'lucide-react';
 import { generateSearchInsights } from './services/geminiService';
 
 const App: React.FC = () => {
   const [viewState, setViewState] = useState<ViewState>('HOME');
   const [selectedPost, setSelectedPost] = useState<BlogPost | null>(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   
   // Filter States
   const [activeCategory, setActiveCategory] = useState<string>('all');
@@ -2368,6 +2341,12 @@ const App: React.FC = () => {
   const handleLogout = async () => {
     await supabase.auth.signOut();
     setViewState('HOME');
+    setMobileMenuOpen(false);
+  };
+
+  const handleNavigation = (view: ViewState) => {
+    setViewState(view);
+    setMobileMenuOpen(false);
   };
 
   // --- Filtering Logic ---
@@ -2428,13 +2407,14 @@ const App: React.FC = () => {
           <span>Code<span className="text-emerald-600 dark:text-emerald-500">Omar</span></span>
         </div>
 
+        {/* Desktop Menu */}
         <div className="hidden md:flex items-center gap-6 text-sm font-mono text-gray-600 dark:text-gray-400">
-          <button onClick={() => setViewState('HOME')} className={`hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors ${viewState === 'HOME' ? 'text-emerald-600 dark:text-emerald-400 font-medium' : ''}`}>/posts</button>
-          <button onClick={() => setViewState('SUBSCRIBE')} className={`hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors ${viewState === 'SUBSCRIBE' ? 'text-emerald-600 dark:text-emerald-400 font-medium' : ''}`}>/assinar</button>
-          <button onClick={() => setViewState('ABOUT')} className={`hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors ${viewState === 'ABOUT' ? 'text-emerald-600 dark:text-emerald-400 font-medium' : ''}`}>/sobre</button>
+          <button onClick={() => handleNavigation('HOME')} className={`hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors ${viewState === 'HOME' ? 'text-emerald-600 dark:text-emerald-400 font-medium' : ''}`}>/posts</button>
+          <button onClick={() => handleNavigation('SUBSCRIBE')} className={`hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors ${viewState === 'SUBSCRIBE' ? 'text-emerald-600 dark:text-emerald-400 font-medium' : ''}`}>/assinar</button>
+          <button onClick={() => handleNavigation('ABOUT')} className={`hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors ${viewState === 'ABOUT' ? 'text-emerald-600 dark:text-emerald-400 font-medium' : ''}`}>/sobre</button>
           
           {userProfile?.role === 'admin' && (
-             <button onClick={() => setViewState('ADMIN')} className={`flex items-center gap-1 hover:text-red-500 transition-colors ${viewState === 'ADMIN' ? 'text-red-500 font-medium' : 'text-gray-500'}`}>
+             <button onClick={() => handleNavigation('ADMIN')} className={`flex items-center gap-1 hover:text-red-500 transition-colors ${viewState === 'ADMIN' ? 'text-red-500 font-medium' : 'text-gray-500'}`}>
                <ShieldAlert size={14} /> /admin
              </button>
           )}
@@ -2448,39 +2428,152 @@ const App: React.FC = () => {
           >
              {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
           </button>
-          <div className="w-px h-5 bg-gray-300 dark:bg-gray-700"></div>
           
-          {user ? (
-            <div className="flex items-center gap-3">
-               <span className="hidden sm:inline-block text-xs font-mono text-emerald-600 dark:text-emerald-500">
-                  {userProfile?.username || user.email?.split('@')[0]}
-               </span>
-               <button 
-                 onClick={handleLogout}
-                 className="flex items-center gap-2 text-xs font-mono bg-gray-100 dark:bg-gray-800 px-3 py-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors text-gray-700 dark:text-gray-300"
-               >
-                 <LogOut size={14} />
-                 Sair
-               </button>
-            </div>
-          ) : (
-            <button 
-              onClick={() => setShowAuthModal(true)}
-              className="flex items-center gap-2 text-xs font-mono bg-emerald-600 text-white px-3 py-1.5 rounded hover:bg-emerald-500 transition-colors shadow-lg shadow-emerald-900/20"
-            >
-              <LogIn size={14} />
-              Entrar
-            </button>
-          )}
+          {/* Mobile Menu Toggle */}
+          <button 
+            className="md:hidden text-gray-500 hover:text-emerald-600 dark:text-gray-400 dark:hover:text-white p-1"
+            onClick={() => setMobileMenuOpen(true)}
+          >
+             <Menu size={24} />
+          </button>
+
+          <div className="hidden md:block w-px h-5 bg-gray-300 dark:bg-gray-700"></div>
+          
+          {/* Desktop Auth */}
+          <div className="hidden md:block">
+            {user ? (
+              <div className="flex items-center gap-3">
+                 <span className="hidden sm:inline-block text-xs font-mono text-emerald-600 dark:text-emerald-500">
+                    {userProfile?.username || user.email?.split('@')[0]}
+                 </span>
+                 <button 
+                   onClick={handleLogout}
+                   className="flex items-center gap-2 text-xs font-mono bg-gray-100 dark:bg-gray-800 px-3 py-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors text-gray-700 dark:text-gray-300"
+                 >
+                   <LogOut size={14} />
+                   Sair
+                 </button>
+              </div>
+            ) : (
+              <button 
+                onClick={() => setShowAuthModal(true)}
+                className="flex items-center gap-2 text-xs font-mono bg-emerald-600 text-white px-3 py-1.5 rounded hover:bg-emerald-500 transition-colors shadow-lg shadow-emerald-900/20"
+              >
+                <LogIn size={14} />
+                Entrar
+              </button>
+            )}
+          </div>
         </div>
       </nav>
+
+      {/* Mobile Menu Overlay */}
+      {mobileMenuOpen && (
+        <div className="fixed inset-0 z-[100] md:hidden">
+           {/* Backdrop */}
+           <div 
+             className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-300"
+             onClick={() => setMobileMenuOpen(false)}
+           ></div>
+           
+           {/* Slide-out Panel */}
+           <div className="absolute right-0 top-0 h-full w-[80%] max-w-sm bg-white dark:bg-[#0b0e11] border-l border-gray-200 dark:border-emerald-500/20 shadow-2xl flex flex-col p-6 animate-in slide-in-from-right duration-300">
+              {/* Header */}
+              <div className="flex items-center justify-between mb-8 border-b border-gray-100 dark:border-white/5 pb-4">
+                 <div className="flex items-center gap-2 font-mono text-emerald-600 dark:text-emerald-500 text-sm">
+                    <Terminal size={16} />
+                    <span>system_nav.sh</span>
+                 </div>
+                 <button 
+                   onClick={() => setMobileMenuOpen(false)}
+                   className="text-gray-500 hover:text-emerald-500 transition-colors"
+                 >
+                    <X size={24} />
+                 </button>
+              </div>
+
+              {/* User Info (Mobile) */}
+              {user && (
+                 <div className="mb-6 p-4 bg-gray-50 dark:bg-emerald-900/10 rounded-lg border border-gray-100 dark:border-emerald-500/20">
+                    <div className="flex items-center gap-3 mb-2">
+                       <div className="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
+                          <User size={20} />
+                       </div>
+                       <div className="overflow-hidden">
+                          <p className="text-sm font-bold text-gray-900 dark:text-white truncate">@{userProfile?.username || 'user'}</p>
+                          <p className="text-xs text-gray-500 font-mono truncate">{user.email}</p>
+                       </div>
+                    </div>
+                 </div>
+              )}
+
+              {/* Navigation Links */}
+              <div className="flex-1 flex flex-col gap-2 font-mono text-sm">
+                 <button 
+                   onClick={() => handleNavigation('HOME')} 
+                   className={`text-left px-4 py-3 rounded hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors ${viewState === 'HOME' ? 'text-emerald-600 dark:text-emerald-500 bg-emerald-50 dark:bg-emerald-900/10 font-bold border-l-2 border-emerald-500' : 'text-gray-600 dark:text-gray-400'}`}
+                 >
+                    /posts
+                 </button>
+                 <button 
+                   onClick={() => handleNavigation('SUBSCRIBE')} 
+                   className={`text-left px-4 py-3 rounded hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors ${viewState === 'SUBSCRIBE' ? 'text-emerald-600 dark:text-emerald-500 bg-emerald-50 dark:bg-emerald-900/10 font-bold border-l-2 border-emerald-500' : 'text-gray-600 dark:text-gray-400'}`}
+                 >
+                    /assinar
+                 </button>
+                 <button 
+                   onClick={() => handleNavigation('ABOUT')} 
+                   className={`text-left px-4 py-3 rounded hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors ${viewState === 'ABOUT' ? 'text-emerald-600 dark:text-emerald-500 bg-emerald-50 dark:bg-emerald-900/10 font-bold border-l-2 border-emerald-500' : 'text-gray-600 dark:text-gray-400'}`}
+                 >
+                    /sobre
+                 </button>
+
+                 {userProfile?.role === 'admin' && (
+                    <button 
+                      onClick={() => handleNavigation('ADMIN')} 
+                      className={`text-left px-4 py-3 rounded hover:bg-red-50 dark:hover:bg-red-900/10 transition-colors mt-4 border border-red-200 dark:border-red-900/30 ${viewState === 'ADMIN' ? 'text-red-600 dark:text-red-400 font-bold' : 'text-red-500'}`}
+                    >
+                       <div className="flex items-center gap-2">
+                          <ShieldAlert size={14} /> /admin_console
+                       </div>
+                    </button>
+                 )}
+              </div>
+
+              {/* Footer Actions */}
+              <div className="mt-auto pt-6 border-t border-gray-100 dark:border-white/5">
+                 {user ? (
+                    <button 
+                      onClick={handleLogout}
+                      className="w-full flex items-center justify-center gap-2 py-3 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors font-mono text-sm font-medium"
+                    >
+                       <LogOut size={16} /> Encerrar Sessão
+                    </button>
+                 ) : (
+                    <button 
+                      onClick={() => {
+                         setMobileMenuOpen(false);
+                         setShowAuthModal(true);
+                      }}
+                      className="w-full flex items-center justify-center gap-2 py-3 bg-emerald-600 text-white rounded hover:bg-emerald-500 transition-colors font-mono text-sm font-bold shadow-lg shadow-emerald-900/20"
+                    >
+                       <LogIn size={16} /> Iniciar Sessão
+                    </button>
+                 )}
+                 <div className="mt-6 text-center text-[10px] text-gray-400 font-mono">
+                    Runtime::Log v2.0.4 mobile_build
+                 </div>
+              </div>
+           </div>
+        </div>
+      )}
 
       {/* Main Content */}
       <main className="relative pt-16 min-h-screen flex flex-col">
         
         {viewState === 'HOME' && (
           <>
-            <Hero onSubscribe={() => setViewState('SUBSCRIBE')} />
+            <Hero onSubscribe={() => handleNavigation('SUBSCRIBE')} />
             
             <div className="max-w-7xl mx-auto px-4 w-full pb-20">
               
