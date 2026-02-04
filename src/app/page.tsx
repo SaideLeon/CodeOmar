@@ -73,22 +73,7 @@ const App: React.FC = () => {
 
       // Logic: If user is NOT admin, only show 'published'.
       // If user IS admin, show everything.
-      
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      // Determine if we should filter
-      let isAdmin = false;
-      if (session?.user) {
-         // Optimistic check or fetch profile
-         try {
-             const { data: profile } = await supabase.from('profiles').select('role').eq('id', session.user.id).single();
-             if (profile?.role === 'admin') isAdmin = true;
-         } catch (profileErr) {
-             // Ignore profile fetch errors here, assume not admin
-         }
-      }
-
-      if (!isAdmin) {
+      if (userProfile?.role !== 'admin') {
          query = query.eq('status', 'published');
       }
       
@@ -117,7 +102,6 @@ const App: React.FC = () => {
           return;
       }
       console.error('Error loading posts from Supabase:', err.message || err);
-      console.info('Hint: This might be due to RLS policies. Falling back to initial data.');
     } finally {
       setLoadingPosts(false);
     }
@@ -148,6 +132,8 @@ const App: React.FC = () => {
         fetchPosts(); // Refresh on any change
       })
       .subscribe();
+
+    fetchPosts();
 
     return () => {
       subscription.unsubscribe();
