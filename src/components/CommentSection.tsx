@@ -5,6 +5,7 @@ import { supabase } from '@/services/supabaseClient';
 import { MessageSquare, CornerDownRight, Send, User as UserIcon, Loader, X } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import AlertModal from '@/components/AlertModal';
 
 interface Comment {
   id: string;
@@ -89,6 +90,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({ postId, user, onAuthReq
   const [newComment, setNewComment] = useState('');
   const [replyingTo, setReplyingTo] = useState<{ id: string; username: string } | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [alertMessage, setAlertMessage] = useState<string | null>(null);
 
   // Validate UUID to prevent API errors
   const isValidUUID = (uuid: string) => {
@@ -178,7 +180,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({ postId, user, onAuthReq
       // Fetch handled by realtime subscription
     } catch (error) {
       console.error('Erro ao postar comentário:', error);
-      alert('Falha ao postar comentário');
+      setAlertMessage('Falha ao postar comentário. Tente novamente em instantes.');
     } finally {
       setSubmitting(false);
     }
@@ -186,6 +188,13 @@ const CommentSection: React.FC<CommentSectionProps> = ({ postId, user, onAuthReq
 
   return (
     <div className="mt-16 pt-10 border-t border-gray-200 dark:border-gray-800">
+      <AlertModal
+        isOpen={!!alertMessage}
+        title="comentario.error"
+        message={alertMessage || ''}
+        variant="error"
+        onClose={() => setAlertMessage(null)}
+      />
       <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-8 flex items-center gap-2">
         <MessageSquare size={20} className="text-emerald-500" />
         Discussão <span className="text-sm font-normal text-gray-500 font-mono">({comments.reduce((acc, c) => acc + 1 + (c.replies?.length || 0), 0)})</span>
