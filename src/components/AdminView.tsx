@@ -8,6 +8,7 @@ import { UploadCloud, FileText, Loader, X, Bot, PenTool, Save, Trash2, Sparkles,
 import { CATEGORIES } from '@/constants';
 import ArticleView from '@/components/ArticleView';
 import { BlogPost } from '@/types';
+import AlertModal from '@/components/AlertModal';
 
 interface AdminViewProps {
   user: any;
@@ -46,6 +47,7 @@ const AdminView: React.FC<AdminViewProps> = ({ user }) => {
   const [previewMode, setPreviewMode] = useState(false);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'success' | 'error'>('idle');
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [alertState, setAlertState] = useState<{ title: string; message: string; variant: 'error' | 'info' } | null>(null);
 
   // Autosave State
   const [lastAutosaved, setLastAutosaved] = useState<Date | null>(null);
@@ -123,7 +125,11 @@ const AdminView: React.FC<AdminViewProps> = ({ user }) => {
       setStatus(data.status || 'draft');
       
       setHasLocalDraft(false); // Hide banner after restore
-      alert("Rascunho restaurado do armazenamento local.");
+      setAlertState({
+        title: "rascunho.restaurado",
+        message: "Rascunho restaurado do armazenamento local.",
+        variant: "info",
+      });
     } catch (e) {
       console.error("Falha ao restaurar rascunho", e);
     }
@@ -194,7 +200,11 @@ const AdminView: React.FC<AdminViewProps> = ({ user }) => {
       }
     } catch (err) {
       console.error("Erro ao carregar detalhes do post:", err);
-      alert("Falha ao carregar post.");
+      setAlertState({
+        title: "post.load_error",
+        message: "Falha ao carregar post.",
+        variant: "error",
+      });
     }
   };
 
@@ -213,7 +223,11 @@ const AdminView: React.FC<AdminViewProps> = ({ user }) => {
       fetchPostList(); // Refresh list
     } catch (err) {
       console.error("Erro ao deletar post:", err);
-      alert("Falha ao deletar post.");
+      setAlertState({
+        title: "post.delete_error",
+        message: "Falha ao deletar post.",
+        variant: "error",
+      });
     }
   };
 
@@ -261,7 +275,11 @@ const AdminView: React.FC<AdminViewProps> = ({ user }) => {
       setReadTime(generated.read_time || '5 min leitura');
     } catch (error: any) {
       console.error(error);
-      alert(`Falha ao gerar conteúdo: ${error.message}`);
+      setAlertState({
+        title: "gemini.error",
+        message: `Falha ao gerar conteúdo: ${error.message}`,
+        variant: "error",
+      });
     } finally {
       setIsGenerating(false);
     }
@@ -309,7 +327,11 @@ const AdminView: React.FC<AdminViewProps> = ({ user }) => {
 
   const handleSave = async () => {
     if (!title || !slug || !user) {
-      alert("Título, Slug e Autenticação de Usuário são obrigatórios.");
+      setAlertState({
+        title: "validacao.obrigatoria",
+        message: "Título, Slug e Autenticação de Usuário são obrigatórios.",
+        variant: "error",
+      });
       return;
     }
     
@@ -351,7 +373,11 @@ const AdminView: React.FC<AdminViewProps> = ({ user }) => {
     } catch (error: any) {
       console.error(error);
       setSaveStatus('error');
-      alert(`Erro ao salvar: ${error.message}`);
+      setAlertState({
+        title: "post.save_error",
+        message: `Erro ao salvar: ${error.message}`,
+        variant: "error",
+      });
     }
   };
 
@@ -745,6 +771,13 @@ const AdminView: React.FC<AdminViewProps> = ({ user }) => {
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-12">
+      <AlertModal
+        isOpen={!!alertState}
+        title={alertState?.title}
+        message={alertState?.message || ''}
+        variant={alertState?.variant || 'info'}
+        onClose={() => setAlertState(null)}
+      />
       <div className="mb-8 flex items-center gap-2 text-gray-500 font-mono text-sm">
         <span>root</span>
         <span>/</span>
