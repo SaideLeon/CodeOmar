@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { BlogPost } from '@/types';
 import WindowFrame from '@/components/WindowFrame';
-import { ArrowLeft, ArrowRight, Clock, Calendar, Hash, Sparkles, Copy, Check, Link as LinkIcon, Quote, Type, Minus, Plus, Heart, Eye } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Clock, Calendar, Hash, Sparkles, Copy, Check, Link as LinkIcon, Quote, Type, Minus, Plus, Heart, Eye, Download } from 'lucide-react';
 import { generateArticleContent } from '@/services/geminiService';
 import { supabase } from '@/services/supabaseClient';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
@@ -201,6 +201,23 @@ const ArticleView: React.FC<ArticleViewProps> = ({ post, user, onAuthRequest, on
     } catch (err) {
       console.error('Erro ao copiar link:', err);
     }
+  };
+
+  const handleDownloadMarkdown = () => {
+    if (typeof window === 'undefined') return;
+
+    const safeTitle = (post.slug || post.title || 'post')
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)+/g, '');
+    const filename = `${safeTitle || 'post'}.md`;
+    const blob = new Blob([content || post.content || ''], { type: 'text/markdown;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = filename;
+    anchor.click();
+    URL.revokeObjectURL(url);
   };
 
   const fontSizes = ['text-base', 'text-lg', 'text-xl', 'text-2xl'];
@@ -438,6 +455,16 @@ const ArticleView: React.FC<ArticleViewProps> = ({ post, user, onAuthRequest, on
                          <span className="text-xs">{shareCopied ? 'Link copiado' : 'Copiar link'}</span>
                        </button>
                      )}
+                     <button
+                       type="button"
+                       onClick={handleDownloadMarkdown}
+                       className="flex items-center gap-2 text-gray-500 hover:text-emerald-600 dark:text-gray-400 dark:hover:text-emerald-300 transition-colors"
+                       title="Baixar postagem em Markdown"
+                       disabled={isLoading}
+                     >
+                       <Download size={14} />
+                       <span className="text-xs">Baixar .md</span>
+                     </button>
                   </div>
                </header>
 
