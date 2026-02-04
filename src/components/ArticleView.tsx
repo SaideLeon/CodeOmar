@@ -121,6 +121,7 @@ const parseInline = (text: string): React.ReactNode[] => {
 const ArticleView: React.FC<ArticleViewProps> = ({ post, user, onAuthRequest, onBack, previousPost, nextPost, onNavigate, previewMode = false }) => {
   const [content, setContent] = useState<string>(post.content || '');
   const [isLoading, setIsLoading] = useState(!post.content);
+  const [shareCopied, setShareCopied] = useState(false);
   
   // Likes State
   const [likesCount, setLikesCount] = useState(0);
@@ -184,6 +185,21 @@ const ArticleView: React.FC<ArticleViewProps> = ({ post, user, onAuthRequest, on
       await supabase.from('post_likes').insert({ post_id: post.id, user_id: user.id });
       setHasLiked(true);
       setLikesCount(prev => prev + 1);
+    }
+  };
+
+  const handleShare = async () => {
+    if (typeof window === 'undefined') return;
+    if (!post.slug) return;
+
+    try {
+      const url = new URL(window.location.origin + window.location.pathname);
+      url.searchParams.set('post', post.slug);
+      await navigator.clipboard.writeText(url.toString());
+      setShareCopied(true);
+      setTimeout(() => setShareCopied(false), 2000);
+    } catch (err) {
+      console.error('Erro ao copiar link:', err);
     }
   };
 
@@ -411,6 +427,17 @@ const ArticleView: React.FC<ArticleViewProps> = ({ post, user, onAuthRequest, on
                         <Type size={14} />
                         Markdown
                      </div>
+                     {post.slug && (
+                       <button
+                         type="button"
+                         onClick={handleShare}
+                         className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 hover:text-emerald-500 dark:hover:text-emerald-300 transition-colors"
+                         title="Copiar link de compartilhamento"
+                       >
+                         {shareCopied ? <Check size={14} /> : <LinkIcon size={14} />}
+                         <span className="text-xs">{shareCopied ? 'Link copiado' : 'Copiar link'}</span>
+                       </button>
+                     )}
                   </div>
                </header>
 

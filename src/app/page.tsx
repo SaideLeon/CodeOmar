@@ -18,6 +18,7 @@ const App: React.FC = () => {
   const [viewState, setViewState] = useState<ViewState>('HOME');
   const [selectedPost, setSelectedPost] = useState<BlogPost | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [didInitFromUrl, setDidInitFromUrl] = useState(false);
   
   // Filter States
   const [activeCategory, setActiveCategory] = useState<string>('all');
@@ -146,6 +147,25 @@ const App: React.FC = () => {
      fetchPosts();
   }, [userProfile]);
 
+  useEffect(() => {
+    if (didInitFromUrl) return;
+    if (posts.length === 0) return;
+
+    const params = new URLSearchParams(window.location.search);
+    const slugParam = params.get('post');
+    if (!slugParam) {
+      setDidInitFromUrl(true);
+      return;
+    }
+
+    const match = posts.find((post) => post.slug === slugParam);
+    if (match) {
+      setSelectedPost(match);
+      setViewState('ARTICLE');
+    }
+    setDidInitFromUrl(true);
+  }, [posts, didInitFromUrl]);
+
   // Reset subcategory when category changes
   useEffect(() => {
     setActiveSubcategory('all');
@@ -192,12 +212,20 @@ const App: React.FC = () => {
     setSelectedPost(post);
     setViewState('ARTICLE');
     window.scrollTo(0,0);
+    if (post.slug) {
+      const url = new URL(window.location.href);
+      url.searchParams.set('post', post.slug);
+      window.history.pushState({}, '', url.toString());
+    }
   };
 
   const handleBack = () => {
     setViewState('HOME');
     setSelectedPost(null);
     window.scrollTo(0,0);
+    const url = new URL(window.location.href);
+    url.searchParams.delete('post');
+    window.history.pushState({}, '', url.toString());
   };
 
   const handleSearch = async (e: React.FormEvent) => {
