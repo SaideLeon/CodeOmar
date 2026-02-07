@@ -63,7 +63,7 @@ const AdminView: React.FC<AdminViewProps> = ({ user }) => {
     const sceneText = videoScene.trim() ? videoScene.trim() : '{DESCREVA A AÇÃO AQUI}';
 
     return [
-      'Apenas para admin. Crie área para gerar prompts de roteiro de vídeo para manter a consistência use o DNA digital do personagem "Homem das cavernas estilizado educativo, corpo atlético robusto, pele bronzeada com sujeira, rosto largo, mandíbula forte, sobrancelhas grossas, olhos grandes castanho-escuros, barba cheia desgrenhada, cabelo castanho escuro bagunçado médio.',
+      '"Homem das cavernas estilizado educativo, corpo atlético robusto, pele bronzeada com sujeira, rosto largo, mandíbula forte, sobrancelhas grossas, olhos grandes castanho-escuros, barba cheia desgrenhada, cabelo castanho escuro bagunçado médio.',
       '',
       'Vestindo túnica de pele de animal marrom com uma alça no ombro, cinto de couro, pulseiras de couro, descalço.',
       '',
