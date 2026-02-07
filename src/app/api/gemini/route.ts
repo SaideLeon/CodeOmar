@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { generateArticleContent, generateSearchInsights, generateFullPost } from '@/services/geminiServer';
+import { generateArticleContent, generateSearchInsights, generateFullPost, generateVideoPrompt } from '@/services/geminiServer';
 
 export async function POST(request: Request) {
   let body: { action?: string; payload?: Record<string, unknown> } = {};
@@ -37,6 +37,15 @@ export async function POST(request: Request) {
         }
         const post = await generateFullPost(topic);
         return NextResponse.json({ post });
+      }
+      case 'generateVideoPrompt': {
+        const scene = typeof payload?.scene === 'string' ? payload.scene : '';
+        const basePrompt = typeof payload?.basePrompt === 'string' ? payload.basePrompt : '';
+        if (!scene || !basePrompt) {
+          return NextResponse.json({ error: 'Cena ou prompt base não informado.' }, { status: 400 });
+        }
+        const prompt = await generateVideoPrompt(scene, basePrompt);
+        return NextResponse.json({ prompt });
       }
       default:
         return NextResponse.json({ error: 'Ação inválida.' }, { status: 400 });
