@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { supabase } from '@/services/supabaseClient';
 import { generateFullPost } from '@/services/geminiService';
 import WindowFrame from '@/components/WindowFrame';
@@ -42,6 +42,8 @@ const AdminView: React.FC<AdminViewProps> = ({ user }) => {
   const [userList, setUserList] = useState<any[]>([]);
   const [loadingUsers, setLoadingUsers] = useState(false);
   const [userSearchTerm, setUserSearchTerm] = useState('');
+  const [videoScene, setVideoScene] = useState('');
+  const [copyStatus, setCopyStatus] = useState<'idle' | 'copied'>('idle');
 
   // AI & Processing State
   const [isGenerating, setIsGenerating] = useState(false);
@@ -55,6 +57,23 @@ const AdminView: React.FC<AdminViewProps> = ({ user }) => {
   // Autosave State
   const [lastAutosaved, setLastAutosaved] = useState<Date | null>(null);
   const [hasLocalDraft, setHasLocalDraft] = useState(false);
+  const videoPrompt = useMemo(() => {
+    const sceneText = videoScene.trim() ? videoScene.trim() : '{DESCREVA A AÇÃO AQUI}';
+
+    return [
+      'Apenas para admin. Crie área para gerar prompts de senhas para vídeo para manter a consistência use o DNA digital do personagem "Homem das cavernas estilizado educativo, corpo atlético robusto, pele bronzeada com sujeira, rosto largo, mandíbula forte, sobrancelhas grossas, olhos grandes castanho-escuros, barba cheia desgrenhada, cabelo castanho escuro bagunçado médio.',
+      '',
+      'Vestindo túnica de pele de animal marrom com uma alça no ombro, cinto de couro, pulseiras de couro, descalço.',
+      '',
+      'Mesmo personagem consistente, mesmo rosto, mesma roupa, proporções idênticas.',
+      '',
+      'Estilo cartoon educativo 3D, iluminação suave, cores vibrantes, render detalhado.',
+      '',
+      `Cena: ${sceneText}`,
+      '',
+      'Fundo pré-histórico, corpo inteiro visível, alta qualidade."'
+    ].join('\n');
+  }, [videoScene]);
 
   // --- Autosave Logic ---
 
@@ -142,6 +161,16 @@ const AdminView: React.FC<AdminViewProps> = ({ user }) => {
     localStorage.removeItem(getStorageKey());
     setHasLocalDraft(false);
     setLastAutosaved(null);
+  };
+
+  const handleCopyVideoPrompt = async () => {
+    try {
+      await navigator.clipboard.writeText(videoPrompt);
+      setCopyStatus('copied');
+      setTimeout(() => setCopyStatus('idle'), 2000);
+    } catch (err) {
+      console.error('Falha ao copiar prompt de vídeo:', err);
+    }
   };
 
   // --- End Autosave Logic ---
@@ -780,6 +809,42 @@ const AdminView: React.FC<AdminViewProps> = ({ user }) => {
                    {isGenerating ? <Loader className="animate-spin" size={14} /> : <Sparkles size={14} />}
                  </button>
               </div>
+           </div>
+
+           {/* Video Prompt Box */}
+           <div className="p-4 rounded-lg bg-gray-50 dark:bg-[#15191e] border border-gray-200 dark:border-gray-700 space-y-3">
+              <div className="flex items-center justify-between gap-2">
+                <label className="text-xs font-mono text-gray-500 uppercase">Prompt de senha para vídeo</label>
+                <button
+                  type="button"
+                  onClick={handleCopyVideoPrompt}
+                  className="text-[10px] font-mono text-emerald-600 hover:text-emerald-500"
+                >
+                  {copyStatus === 'copied' ? 'Copiado!' : 'Copiar prompt'}
+                </button>
+              </div>
+              <div>
+                <label className="block text-[10px] font-mono text-gray-400 mb-1 uppercase">Cena</label>
+                <textarea
+                  value={videoScene}
+                  onChange={(e) => setVideoScene(e.target.value)}
+                  rows={3}
+                  className="w-full bg-white dark:bg-black/20 border border-gray-200 dark:border-gray-700 rounded px-2 py-2 text-xs font-mono dark:text-white resize-y"
+                  placeholder="Descreva a ação do personagem..."
+                />
+              </div>
+              <div>
+                <label className="block text-[10px] font-mono text-gray-400 mb-1 uppercase">Prompt final</label>
+                <textarea
+                  value={videoPrompt}
+                  readOnly
+                  rows={10}
+                  className="w-full bg-white/70 dark:bg-black/30 border border-gray-200 dark:border-gray-700 rounded px-2 py-2 text-xs font-mono text-gray-700 dark:text-gray-200 resize-y"
+                />
+              </div>
+              <p className="text-[10px] text-gray-400 font-mono">
+                Use o mesmo DNA visual para manter a consistência em vídeos.
+              </p>
            </div>
 
            {/* Tags */}
