@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { supabase } from '@/services/supabaseClient';
-import { generateFullPost } from '@/services/geminiService';
+import { generateFullPost, generateVideoPrompt } from '@/services/geminiService';
 import WindowFrame from '@/components/WindowFrame';
 import { UploadCloud, FileText, Loader, X, Bot, PenTool, Save, Trash2, Sparkles, AlertTriangle, Eye, CheckCircle, Edit, RefreshCw, Search, ArrowLeft, Plus, History, RotateCcw, Layers, Users } from 'lucide-react';
 import { CATEGORIES } from '@/constants';
@@ -43,6 +43,7 @@ const AdminView: React.FC<AdminViewProps> = ({ user }) => {
   const [loadingUsers, setLoadingUsers] = useState(false);
   const [userSearchTerm, setUserSearchTerm] = useState('');
   const [videoScene, setVideoScene] = useState('');
+  const [videoPromptOverride, setVideoPromptOverride] = useState('');
   const [copyStatus, setCopyStatus] = useState<'idle' | 'copied'>('idle');
 
   // AI & Processing State
@@ -50,6 +51,7 @@ const AdminView: React.FC<AdminViewProps> = ({ user }) => {
   const [aiTopic, setAiTopic] = useState('');
   const [uploading, setUploading] = useState(false);
   const [previewMode, setPreviewMode] = useState(false);
+  const [isRefiningVideoPrompt, setIsRefiningVideoPrompt] = useState(false);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'success' | 'error'>('idle');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [alertState, setAlertState] = useState<{ title: string; message: string; variant: 'error' | 'info' } | null>(null);
@@ -61,7 +63,7 @@ const AdminView: React.FC<AdminViewProps> = ({ user }) => {
     const sceneText = videoScene.trim() ? videoScene.trim() : '{DESCREVA A AÇÃO AQUI}';
 
     return [
-      'Apenas para admin. Crie área para gerar prompts de senhas para vídeo para manter a consistência use o DNA digital do personagem "Homem das cavernas estilizado educativo, corpo atlético robusto, pele bronzeada com sujeira, rosto largo, mandíbula forte, sobrancelhas grossas, olhos grandes castanho-escuros, barba cheia desgrenhada, cabelo castanho escuro bagunçado médio.',
+      'Apenas para admin. Crie área para gerar prompts de roteiro de vídeo para manter a consistência use o DNA digital do personagem "Homem das cavernas estilizado educativo, corpo atlético robusto, pele bronzeada com sujeira, rosto largo, mandíbula forte, sobrancelhas grossas, olhos grandes castanho-escuros, barba cheia desgrenhada, cabelo castanho escuro bagunçado médio.',
       '',
       'Vestindo túnica de pele de animal marrom com uma alça no ombro, cinto de couro, pulseiras de couro, descalço.',
       '',
@@ -74,6 +76,8 @@ const AdminView: React.FC<AdminViewProps> = ({ user }) => {
       'Fundo pré-histórico, corpo inteiro visível, alta qualidade."'
     ].join('\n');
   }, [videoScene]);
+
+  const finalVideoPrompt = videoPromptOverride || videoPrompt;
 
   // --- Autosave Logic ---
 
@@ -163,9 +167,41 @@ const AdminView: React.FC<AdminViewProps> = ({ user }) => {
     setLastAutosaved(null);
   };
 
+  const handleVideoSceneChange = (value: string) => {
+    setVideoScene(value);
+    if (videoPromptOverride) {
+      setVideoPromptOverride('');
+    }
+  };
+
+  const handleRefineVideoPrompt = async () => {
+    if (!videoScene.trim()) {
+      setAlertState({
+        title: 'video.prompt.scene_required',
+        message: 'Informe a cena antes de refinar o prompt.',
+        variant: 'error',
+      });
+      return;
+    }
+
+    setIsRefiningVideoPrompt(true);
+    try {
+      const refinedPrompt = await generateVideoPrompt(videoScene.trim(), videoPrompt);
+      setVideoPromptOverride(refinedPrompt.trim());
+    } catch (error) {
+      setAlertState({
+        title: 'video.prompt.error',
+        message: 'Não foi possível refinar o prompt com a IA.',
+        variant: 'error',
+      });
+    } finally {
+      setIsRefiningVideoPrompt(false);
+    }
+  };
+
   const handleCopyVideoPrompt = async () => {
     try {
-      await navigator.clipboard.writeText(videoPrompt);
+      await navigator.clipboard.writeText(finalVideoPrompt);
       setCopyStatus('copied');
       setTimeout(() => setCopyStatus('idle'), 2000);
     } catch (err) {
@@ -814,20 +850,30 @@ const AdminView: React.FC<AdminViewProps> = ({ user }) => {
            {/* Video Prompt Box */}
            <div className="p-4 rounded-lg bg-gray-50 dark:bg-[#15191e] border border-gray-200 dark:border-gray-700 space-y-3">
               <div className="flex items-center justify-between gap-2">
-                <label className="text-xs font-mono text-gray-500 uppercase">Prompt de senha para vídeo</label>
-                <button
-                  type="button"
-                  onClick={handleCopyVideoPrompt}
-                  className="text-[10px] font-mono text-emerald-600 hover:text-emerald-500"
-                >
-                  {copyStatus === 'copied' ? 'Copiado!' : 'Copiar prompt'}
-                </button>
+                <label className="text-xs font-mono text-gray-500 uppercase">Prompt de roteiro de vídeo</label>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={handleRefineVideoPrompt}
+                    disabled={isRefiningVideoPrompt}
+                    className="text-[10px] font-mono text-emerald-600 hover:text-emerald-500 disabled:opacity-50"
+                  >
+                    {isRefiningVideoPrompt ? 'Refinando...' : 'Refinar com Gemini'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleCopyVideoPrompt}
+                    className="text-[10px] font-mono text-emerald-600 hover:text-emerald-500"
+                  >
+                    {copyStatus === 'copied' ? 'Copiado!' : 'Copiar prompt'}
+                  </button>
+                </div>
               </div>
               <div>
                 <label className="block text-[10px] font-mono text-gray-400 mb-1 uppercase">Cena</label>
                 <textarea
                   value={videoScene}
-                  onChange={(e) => setVideoScene(e.target.value)}
+                  onChange={(e) => handleVideoSceneChange(e.target.value)}
                   rows={3}
                   className="w-full bg-white dark:bg-black/20 border border-gray-200 dark:border-gray-700 rounded px-2 py-2 text-xs font-mono dark:text-white resize-y"
                   placeholder="Descreva a ação do personagem..."
@@ -836,7 +882,7 @@ const AdminView: React.FC<AdminViewProps> = ({ user }) => {
               <div>
                 <label className="block text-[10px] font-mono text-gray-400 mb-1 uppercase">Prompt final</label>
                 <textarea
-                  value={videoPrompt}
+                  value={finalVideoPrompt}
                   readOnly
                   rows={10}
                   className="w-full bg-white/70 dark:bg-black/30 border border-gray-200 dark:border-gray-700 rounded px-2 py-2 text-xs font-mono text-gray-700 dark:text-gray-200 resize-y"

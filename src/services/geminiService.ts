@@ -42,3 +42,13 @@ export const generateFullPost = async (topic: string): Promise<any> => {
   const data = await requestGemini<{ post: any }>('generateFullPost', { topic });
   return data.post;
 };
+
+export const generateVideoPrompt = async (scene: string, basePrompt: string): Promise<string> => {
+  try {
+    const data = await requestGemini<{ prompt: string }>('generateVideoPrompt', { scene, basePrompt });
+    return data.prompt;
+  } catch (error) {
+    console.error('Gemini Video Prompt Error:', error);
+    return basePrompt;
+  }
+};

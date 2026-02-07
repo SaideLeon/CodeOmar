@@ -117,3 +117,28 @@ export const generateFullPost = async (topic: string): Promise<any> => {
   
   return JSON.parse(text);
 };
+
+export const generateVideoPrompt = async (scene: string, basePrompt: string): Promise<string> => {
+  const ai = getAiClient();
+  const model = ai.getGenerativeModel({ model: "gemini-2.5-flash" });
+  const prompt = `
+    Você é um especialista em prompts para roteiro de vídeo com foco em consistência visual de personagens.
+    Melhore o prompt abaixo para ficar mais claro, direto e útil para gerar um roteiro de vídeo.
+
+    Regras:
+    - IDIOMA: PORTUGUÊS (BRASIL).
+    - Preserve integralmente o DNA visual do personagem e os detalhes de roupa.
+    - Não invente novos elementos visuais fora do DNA informado.
+    - Mantenha a saída em formato de prompt único (sem listas e sem explicações).
+    - Inclua a cena informada e garanta que esteja explícita.
+
+    Cena informada: "${scene}"
+
+    Prompt base:
+    ${basePrompt}
+  `;
+
+  const result = await model.generateContent(prompt);
+  const response = result.response;
+  return response.text();
+};
