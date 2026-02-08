@@ -43,6 +43,7 @@ const AdminView: React.FC<AdminViewProps> = ({ user }) => {
   const [loadingUsers, setLoadingUsers] = useState(false);
   const [userSearchTerm, setUserSearchTerm] = useState('');
   const [videoScene, setVideoScene] = useState('');
+  const [videoNarration, setVideoNarration] = useState('');
   const [videoPromptOverride, setVideoPromptOverride] = useState('');
   const [copyStatus, setCopyStatus] = useState<'idle' | 'copied'>('idle');
 
@@ -61,6 +62,7 @@ const AdminView: React.FC<AdminViewProps> = ({ user }) => {
   const [hasLocalDraft, setHasLocalDraft] = useState(false);
   const videoPrompt = useMemo(() => {
     const sceneText = videoScene.trim() ? videoScene.trim() : '{DESCREVA A AÇÃO AQUI}';
+    const narrationText = videoNarration.trim() ? videoNarration.trim() : '{TEXTO DO NARRADOR EXPLICANDO O QUE ESTÁ ACONTECENDO OU O CONCEITO}';
 
     return [
       '"Esquilo estilizado educativo, corpo pequeno e ágil, proporções cartunescas equilibradas, pelagem marrom-avermelhada com detalhes mais claros no peito e no rosto, olhos grandes e expressivos castanho-escuros, focinho curto, orelhas pontudas levemente arredondadas, cauda grande, volumosa e bem destacada.',
@@ -85,7 +87,7 @@ const AdminView: React.FC<AdminViewProps> = ({ user }) => {
       '---',
       '',
       'Narração (voz externa):',
-      'Narração: {TEXTO DO NARRADOR EXPLICANDO O QUE ESTÁ ACONTECENDO OU O CONCEITO}',
+      `Narração: ${narrationText}`,
       '(Voz neutra, didática, objetiva. O narrador descreve fatos e conceitos enquanto o esquilo age.)',
       '',
       '---',
@@ -95,7 +97,7 @@ const AdminView: React.FC<AdminViewProps> = ({ user }) => {
       '',
       'Corpo inteiro do personagem visível, enquadramento centralizado, foco total no esquilo e na ação, alta qualidade."'
     ].join('\n');
-  }, [videoScene]);
+  }, [videoNarration, videoScene]);
 
   const finalVideoPrompt = videoPromptOverride || videoPrompt;
 
@@ -189,6 +191,13 @@ const AdminView: React.FC<AdminViewProps> = ({ user }) => {
 
   const handleVideoSceneChange = (value: string) => {
     setVideoScene(value);
+    if (videoPromptOverride) {
+      setVideoPromptOverride('');
+    }
+  };
+
+  const handleVideoNarrationChange = (value: string) => {
+    setVideoNarration(value);
     if (videoPromptOverride) {
       setVideoPromptOverride('');
     }
@@ -897,6 +906,16 @@ const AdminView: React.FC<AdminViewProps> = ({ user }) => {
                   rows={3}
                   className="w-full bg-white dark:bg-black/20 border border-gray-200 dark:border-gray-700 rounded px-2 py-2 text-xs font-mono dark:text-white resize-y"
                   placeholder="Descreva a ação do personagem..."
+                />
+              </div>
+              <div>
+                <label className="block text-[10px] font-mono text-gray-400 mb-1 uppercase">Narração</label>
+                <textarea
+                  value={videoNarration}
+                  onChange={(e) => handleVideoNarrationChange(e.target.value)}
+                  rows={3}
+                  className="w-full bg-white dark:bg-black/20 border border-gray-200 dark:border-gray-700 rounded px-2 py-2 text-xs font-mono dark:text-white resize-y"
+                  placeholder="Texto do narrador..."
                 />
               </div>
               <div>
