@@ -88,7 +88,7 @@ const AdminView: React.FC<AdminViewProps> = ({ user }) => {
       '',
       'Narração (voz externa):',
       `Narração: ${narrationText}`,
-      '(Voz neutra, didática, objetiva. O narrador descreve fatos e conceitos enquanto o esquilo age.)',
+      '(Voz masculina, didática, objetiva. O narrador descreve fatos e conceitos enquanto o esquilo age.)',
       '',
       '---',
       '',
