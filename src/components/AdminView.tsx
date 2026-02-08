@@ -47,6 +47,9 @@ const AdminView: React.FC<AdminViewProps> = ({ user }) => {
   const [videoNarration, setVideoNarration] = useState('');
   const [videoPromptOverride, setVideoPromptOverride] = useState('');
   const [copyStatus, setCopyStatus] = useState<'idle' | 'copied'>('idle');
+  const [veo3ItemName, setVeo3ItemName] = useState('');
+  const [veo3PromptOutput, setVeo3PromptOutput] = useState('');
+  const [veo3CopyStatus, setVeo3CopyStatus] = useState<'idle' | 'copied'>('idle');
 
   // AI & Processing State
   const [isGenerating, setIsGenerating] = useState(false);
@@ -236,6 +239,22 @@ const AdminView: React.FC<AdminViewProps> = ({ user }) => {
       setTimeout(() => setCopyStatus('idle'), 2000);
     } catch (err) {
       console.error('Falha ao copiar prompt de vídeo:', err);
+    }
+  };
+
+  const handleGenerateVeo3Prompt = () => {
+    if (!veo3ItemName.trim()) return;
+    setVeo3PromptOutput(generateVeo3Prompt(veo3ItemName.trim()));
+  };
+
+  const handleCopyVeo3Prompt = async () => {
+    if (!veo3PromptOutput) return;
+    try {
+      await navigator.clipboard.writeText(veo3PromptOutput);
+      setVeo3CopyStatus('copied');
+      setTimeout(() => setVeo3CopyStatus('idle'), 2000);
+    } catch (err) {
+      console.error('Falha ao copiar prompt VEO3:', err);
     }
   };
 
