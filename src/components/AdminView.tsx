@@ -9,6 +9,7 @@ import { CATEGORIES } from '@/constants';
 import ArticleView from '@/components/ArticleView';
 import { BlogPost } from '@/types';
 import AlertModal from '@/components/AlertModal';
+import Veo3PromptGenerator from '@/components/Veo3PromptGenerator';
 
 interface AdminViewProps {
   user: any;
@@ -931,6 +932,8 @@ const AdminView: React.FC<AdminViewProps> = ({ user }) => {
                 Use o mesmo DNA visual para manter a consistência em vídeos.
               </p>
            </div>
+
+           <Veo3PromptGenerator />
 
            {/* Tags */}
            <div className="p-4 rounded-lg bg-gray-50 dark:bg-[#15191e] border border-gray-200 dark:border-gray-700">

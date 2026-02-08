@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { generateArticleContent, generateSearchInsights, generateFullPost, generateVideoPrompt } from '@/services/geminiServer';
+import { generateArticleContent, generateSearchInsights, generateFullPost, generateVideoPrompt, generateVeo3Prompt } from '@/services/geminiServer';
 
 export async function POST(request: Request) {
   let body: { action?: string; payload?: Record<string, unknown> } = {};
@@ -45,6 +45,14 @@ export async function POST(request: Request) {
           return NextResponse.json({ error: 'Cena ou prompt base não informado.' }, { status: 400 });
         }
         const prompt = await generateVideoPrompt(scene, basePrompt);
+        return NextResponse.json({ prompt });
+      }
+      case 'generateVeo3Prompt': {
+        const itemName = typeof payload?.itemName === 'string' ? payload.itemName : '';
+        if (!itemName) {
+          return NextResponse.json({ error: 'Nome do item não informado.' }, { status: 400 });
+        }
+        const prompt = await generateVeo3Prompt(itemName);
         return NextResponse.json({ prompt });
       }
       default:

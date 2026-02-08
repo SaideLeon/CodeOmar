@@ -52,3 +52,13 @@ export const generateVideoPrompt = async (scene: string, basePrompt: string): Pr
     return basePrompt;
   }
 };
+
+export const generateVeo3Prompt = async (itemName: string): Promise<string> => {
+  try {
+    const data = await requestGemini<{ prompt: string }>('generateVeo3Prompt', { itemName });
+    return data.prompt;
+  } catch (error) {
+    console.error('Gemini VEO3 Prompt Error:', error);
+    return '';
+  }
+};
