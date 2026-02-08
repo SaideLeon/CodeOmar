@@ -63,17 +63,37 @@ const AdminView: React.FC<AdminViewProps> = ({ user }) => {
     const sceneText = videoScene.trim() ? videoScene.trim() : '{DESCREVA A AÇÃO AQUI}';
 
     return [
-      '"Homem das cavernas estilizado educativo, corpo atlético robusto, pele bronzeada com sujeira, rosto largo, mandíbula forte, sobrancelhas grossas, olhos grandes castanho-escuros, barba cheia desgrenhada, cabelo castanho escuro bagunçado médio.',
+      '"Esquilo estilizado educativo, corpo pequeno e ágil, proporções cartunescas equilibradas, pelagem marrom-avermelhada com detalhes mais claros no peito e no rosto, olhos grandes e expressivos castanho-escuros, focinho curto, orelhas pontudas levemente arredondadas, cauda grande, volumosa e bem destacada.',
       '',
-      'Vestindo túnica de pele de animal marrom com uma alça no ombro, cinto de couro, pulseiras de couro, descalço.',
+      'Expressão curiosa e inteligente, comportamento silencioso, nunca fala, comunica apenas por ações, gestos simples e expressões faciais.',
       '',
-      'Mesmo personagem consistente, mesmo rosto, mesma roupa, proporções idênticas.',
+      'Vestindo pequeno colete simples de couro marrom claro (opcional, estilo tribal/educativo), bolsinha lateral de couro para carregar nozes, pulseira simples de cipó ou couro fino em uma das patas dianteiras. Sem sapatos.',
       '',
-      'Estilo cartoon educativo 3D, iluminação suave, cores vibrantes, render detalhado.',
+      'Mesmo personagem em todos os vídeos: mesmo rosto, mesma pelagem, mesma roupa, mesmas proporções corporais, consistência absoluta entre cenas.',
       '',
+      '---',
+      '',
+      'Estilo visual:',
+      'Estilo cartoon educativo 3D, iluminação suave e difusa, sombras leves, cores vibrantes e naturais, render detalhado, aparência limpa, amigável e clara para ensino.',
+      '',
+      '---',
+      '',
+      'Cena (visual apenas):',
       `Cena: ${sceneText}`,
+      '(O esquilo apenas executa a ação, sem falar, de forma clara e visualmente compreensível.)',
       '',
-      'Fundo pré-histórico, corpo inteiro visível, alta qualidade."'
+      '---',
+      '',
+      'Narração (voz externa):',
+      'Narração: {TEXTO DO NARRADOR EXPLICANDO O QUE ESTÁ ACONTECENDO OU O CONCEITO}',
+      '(Voz neutra, didática, objetiva. O narrador descreve fatos e conceitos enquanto o esquilo age.)',
+      '',
+      '---',
+      '',
+      'Ambiente:',
+      'Fundo de floresta estilizada (árvores, folhas, troncos, chão com folhas secas), cenário simples e coerente, sem excesso de elementos que distraiam.',
+      '',
+      'Corpo inteiro do personagem visível, enquadramento centralizado, foco total no esquilo e na ação, alta qualidade."'
     ].join('\n');
   }, [videoScene]);
 
