@@ -6,8 +6,6 @@ import WindowFrame from '@/components/WindowFrame';
 import { ArrowLeft, ArrowRight, Clock, Calendar, Hash, Sparkles, Copy, Check, Link as LinkIcon, Quote, Type, Minus, Plus, Heart, Eye, Download } from 'lucide-react';
 import { generateArticleContent } from '@/services/geminiService';
 import { supabase } from '@/services/supabaseClient';
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import CommentSection from '@/components/CommentSection';
 
 interface ArticleViewProps {
@@ -56,21 +54,9 @@ const CodeBlock: React.FC<{ code: string; language?: string }> = ({ code, langua
         </button>
       </div>
       <div className="overflow-x-auto custom-scrollbar">
-        <SyntaxHighlighter
-          language={language.toLowerCase()}
-          style={vscDarkPlus}
-          customStyle={{
-            margin: 0,
-            padding: '1.5rem',
-            background: 'transparent',
-            fontSize: '0.875rem',
-            lineHeight: '1.6',
-            fontFamily: "'JetBrains Mono', monospace",
-          }}
-          wrapLongLines={true}
-        >
-          {code}
-        </SyntaxHighlighter>
+        <pre className="m-0 bg-transparent p-6 text-sm leading-relaxed font-mono text-gray-100">
+          <code className={`language-${language.toLowerCase()}`}>{code}</code>
+        </pre>
       </div>
     </div>
   );
