@@ -2,10 +2,10 @@ import { Suspense } from 'react';
 import AppShell from '@/components/AppShell';
 import NeonSkeleton from '@/components/shared/NeonSkeleton';
 
-export default function HomePage() {
+export default function AboutPage() {
   return (
     <Suspense fallback={<NeonSkeleton />}>
-      <AppShell initialView="HOME" />
+      <AppShell initialView="ABOUT" />
     </Suspense>
   );
 }

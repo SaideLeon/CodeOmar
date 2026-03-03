@@ -1,15 +1,15 @@
 import type { Metadata } from 'next';
+import SiteChrome from '@/components/shared/SiteChrome';
 import './globals.css';
 
 export const metadata: Metadata = {
   title: 'CodeOmar - Dev Blog',
   description:
     'A high-performance, dark-mode blog for software engineers featuring neon aesthetics, deep-dive technical content, and AI-powered insights.',
-
   icons: {
-    icon: '/favicon.svg',        // favicon padrão
-    shortcut: '/favicon.svg',   // compatibilidade
-    apple: '/apple-icon.png',   // opcional (iOS)
+    icon: '/favicon.svg',
+    shortcut: '/favicon.svg',
+    apple: '/apple-icon.png',
   },
 };
 
@@ -29,9 +29,12 @@ export default function RootLayout({
         />
       </head>
 
-      <body className="bg-gray-50 text-gray-900 dark:bg-[#050505] dark:text-[#e5e5e5] transition-colors duration-300 font-sans">
-        {children}
+      <body className="bg-gray-50 font-sans text-gray-900 transition-colors duration-300 dark:bg-[#050505] dark:text-[#e5e5e5]">
+        <div className="min-h-screen">
+          <SiteChrome />
+          <main className="pt-16">{children}</main>
+        </div>
       </body>
     </html>
   );
-    }
+}
