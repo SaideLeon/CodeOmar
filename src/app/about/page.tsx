@@ -8,4 +8,8 @@ export default function AboutPage() {
       <AppShell initialView="ABOUT" />
     </Suspense>
   );
+import AppShell from '@/components/AppShell';
+
+export default function AboutPage() {
+  return <AppShell initialView="ABOUT" />;
 }

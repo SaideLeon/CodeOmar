@@ -8,4 +8,8 @@ export default function AdminPage() {
       <AppShell initialView="ADMIN" />
     </Suspense>
   );
+import AppShell from '@/components/AppShell';
+
+export default function AdminPage() {
+  return <AppShell initialView="ADMIN" />;
 }
